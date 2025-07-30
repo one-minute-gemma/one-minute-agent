@@ -1,5 +1,5 @@
 import random
-from typing import Dict, List, Callable, Any
+from typing import Dict, Any
 
 async def get_health_metrics() -> Dict[str, Any]:
     """Returns the current health metrics of the user.
@@ -75,11 +75,3 @@ async def get_user_details() -> Dict[str, Any]:
         "allergies": "None",
         "medical_conditions": "None",
     }
-
-tools: List[Callable] = [
-    get_health_metrics,
-    get_user_location,
-    get_audio_input,
-    get_video_input,
-    get_user_details,
-]
