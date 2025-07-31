@@ -1,4 +1,7 @@
 import random
+import os
+import base64
+from pathlib import Path
 from typing import Dict, Any
 
 async def get_health_metrics() -> Dict[str, Any]:
@@ -43,19 +46,49 @@ async def get_audio_input() -> Dict[str, Any]:
     return {"audio": random.choice(situations)}
 
 async def get_video_input() -> Dict[str, Any]:
-    """Returns simulated video input describing emergency visual situations.
+    """Returns a sample emergency image for multimodal analysis.
 
     Returns:
-        dict: Contains video field with a randomly selected emergency scene description.
+        dict: Contains image data in base64 format and metadata for direct model processing.
     """
     print("📹 Getting video input")
-    situations = [
-        "The person is lying on the ground, not moving",
-        "The person is unconscious, not moving",
-        "The person is unresponsive, not moving",
-        "The person is not breathing, not moving",
+    
+    current_dir = Path(__file__).parent.parent
+    sample_images_dir = current_dir / "stuff" / "sample_images"
+    
+    image_files = [
+        "example_1.jpeg",
+        "example_2.jpg", 
+        "example_3.jpg",
+        "example_5.jpg",
+        "example_6.jpg"
     ]
-    return {"video": random.choice(situations)}
+    
+    selected_image = random.choice(image_files)
+    image_path = sample_images_dir / selected_image
+    
+    try:
+        with open(image_path, "rb") as image_file:
+            image_data = image_file.read()
+            image_base64 = base64.b64encode(image_data).decode('utf-8')
+            
+        mime_type = "image/jpeg" if selected_image.endswith(('.jpg', '.jpeg')) else "image/png"
+        
+        return {
+            "image": {
+                "data": image_base64,
+                "mime_type": mime_type,
+                "filename": selected_image
+            },
+            "description": f"Emergency scene captured from video feed: {selected_image}"
+        }
+        
+    except Exception as e:
+        print(f"Error loading image {selected_image}: {e}")
+        return {
+            "error": f"Could not load image {selected_image}",
+            "fallback_description": "Unable to access video feed - visual analysis not available"
+        }
 
 async def get_user_details() -> Dict[str, Any]:
     """Returns detailed personal and medical information about the user.
