@@ -1,4 +1,5 @@
 from google.adk.agents import Agent
+from google.adk.tools import agent_tool
 from .tools.tools import (
     get_health_metrics,
     get_user_location,
@@ -14,9 +15,6 @@ with open("one-minute-agent/utils/video_agent_prompt.md", "r") as file:
 
 with open("one-minute-agent/utils/audio_agent_prompt.md", "r") as file:
     audio_prompt = file.read()
-
-with open("one-minute-agent/utils/conversation_agent_prompt.md", "r") as file:
-    conversation_prompt = file.read()
 
 with open("one-minute-agent/utils/root_agent_prompt.md", "r") as file:
     root_prompt = file.read()
@@ -34,15 +32,12 @@ audio_agent = Agent(
     model=AGENT_MODEL,
     description="Specialized agent that analyzes audio input to interpret speech and vocal distress indicators.",
     instruction=audio_prompt,
+    sub_agents=[],
     tools=[get_audio_input],
 )
 
-conversation_agent = Agent(
-    name="conversation_agent",
-    model=AGENT_MODEL,
-    description="Specialized agent that coordinates and synthesizes information from multiple emergency data sources.",
-    instruction=conversation_prompt,
-)
+video_agent_tool = agent_tool.AgentTool(video_agent)
+audio_agent_tool = agent_tool.AgentTool(audio_agent)
 
 root_agent = Agent(
     name="emergency_911_agent",
@@ -51,10 +46,11 @@ root_agent = Agent(
         "Primary AI agent that communicates with 911 operators, coordinating sub-agents and tools to provide comprehensive emergency information."
     ),
     instruction=root_prompt,
-    sub_agents=[video_agent, audio_agent, conversation_agent],
     tools=[
         get_health_metrics,
         get_user_location,
         get_user_details,
+        video_agent_tool,
+        audio_agent_tool,
     ],
 )
