@@ -15,7 +15,15 @@ GOOGLE_API_KEY=<your-google-studio-api-key>
 From the root directory, run:
 
 ````bash
-pip install -r requirements.txt
+uv venv .venv
+```
+
+```bash
+source .venv/bin/activate
+```
+
+```bash
+uv sync
 ```
 
 Then, run:
