@@ -5,5 +5,5 @@ Run this from the project root directory.
 """
 
 if __name__ == "__main__":
-    from one_minute_agent_2.agent import main
+    from ollama_agent.agent import main
     main() 
