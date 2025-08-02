@@ -9,6 +9,12 @@ from .agents.emergency_agent import OneMinuteAgent
 from .providers.ollama_provider import OllamaProvider
 from .tools.emergency_tools import EmergencyToolsProvider
 
+# Import the centralized config
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
+from config.config import config
+
 class OneMinuteAgentAPI:
     """
     Main API class for one-minute agent functionality.
@@ -17,17 +23,22 @@ class OneMinuteAgentAPI:
     
     def __init__(
         self, 
-        model_name: str = "gemma3n:e2b",
+        model_name: str = None,
         use_custom_registry: bool = False,
-        show_thinking: bool = False
+        show_thinking: bool = None
     ):
         """
         Initialize the OneMinuteAgent API.
         
         Args:
-            model_name: Name of the Ollama model to use
+            model_name: Name of the model to use (defaults to config value)
             use_custom_registry: If True, creates a new registry. If False, uses global registry.
+            show_thinking: Whether to show thinking process (defaults to config value)
         """
+        # Use config defaults if not provided
+        model_name = model_name or config.default_model_name
+        show_thinking = show_thinking if show_thinking is not None else config.default_show_thinking
+        
         if use_custom_registry:
             self.registry = ToolRegistry()
         else:
@@ -42,7 +53,7 @@ class OneMinuteAgentAPI:
         self.agent = OneMinuteAgent(
             model_provider=self.model_provider,
             tool_executor=self.tool_executor,
-            max_iterations=2,
+            max_iterations=config.max_iterations,
             show_thinking=show_thinking
         )
     
@@ -108,7 +119,7 @@ class OneMinuteAgentAPI:
                 "error": str(e)
             }
 
-def create_emergency_agent(model_name: str = "gemma3n:e2b", show_thinking: bool = False) -> OneMinuteAgentAPI:
+def create_emergency_agent(model_name: str = None, show_thinking: bool = None) -> OneMinuteAgentAPI:
     """
     Quick factory function to create an one-minute agent.
     Perfect for frontend integration.
@@ -116,17 +127,17 @@ def create_emergency_agent(model_name: str = "gemma3n:e2b", show_thinking: bool 
     return OneMinuteAgentAPI(model_name=model_name, show_thinking=show_thinking)
 
 def create_custom_emergency_agent(
-    model_name: str = "gemma3n:e2b",
+    model_name: str = None,
     additional_tools: Optional[Dict[str, Any]] = None,
-    show_thinking: bool = False
+    show_thinking: bool = None
 ) -> OneMinuteAgentAPI:
     """
     Create an one-minute agent with custom tools.
     
     Args:
-        model_name: Ollama model name
+        model_name: Model name (defaults to config value)
         additional_tools: Dict of additional tools to register
-        show_thinking: Whether to show the agent's thinking process
+        show_thinking: Whether to show the agent's thinking process (defaults to config value)
         
     Returns:
         Configured OneMinuteAgentAPI instance
