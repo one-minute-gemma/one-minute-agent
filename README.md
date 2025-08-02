@@ -28,7 +28,7 @@ uv sync
 Then, run:
 
 ```bash
-adk web
+uv run run_agent.py                                                                        
 ```
 
 This will open a web interface where you can interact with the agent.
