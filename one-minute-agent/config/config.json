@@ -1,0 +1,25 @@
+{
+  "model": {
+    "provider": "ollama",
+    "default_name": "gemma3n:e2b",
+    "fallback_name": "gemma3n:latest"
+  },
+  "agent": {
+    "max_iterations": 2,
+    "show_thinking": false,
+    "emergency_mode": true
+  },
+  "tools": {
+    "max_tools_per_conversation": 2,
+    "timeout_seconds": 30
+  },
+  "app": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "debug": false
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  }
+} 
