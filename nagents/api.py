@@ -1,43 +1,39 @@
 """
-Frontend-friendly API for the OneMinuteAgent system.
+Frontend-friendly API for the Nagents system.
 Provides a clean interface for creating and using one-minute agents.
 """
 from typing import Optional, Dict, Any
 from .base.agent import AgentResponse
 from .base.tool_registry import ToolRegistry, ToolExecutor, default_registry
-from .agents.emergency_agent import OneMinuteAgent
+from .examples.emergency.agent import OneMinuteAgent
 from .providers.ollama_provider import OllamaProvider
-from .tools.emergency_tools import EmergencyToolsProvider
+from .examples.emergency.tools import emergency_tools
 
-# Import the centralized config
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
-from config.config import config
-
-class OneMinuteAgentAPI:
+class NagentsAPI:
     """
-    Main API class for one-minute agent functionality.
+    Main API class for Nagents agent functionality.
     Designed to be easily pluggable into frontends.
     """
     
     def __init__(
         self, 
         model_name: str = None,
+        model_name: str = None,
         use_custom_registry: bool = False,
-        show_thinking: bool = None
+        show_thinking: bool = None,
+        max_iterations: int = 5
     ):
         """
-        Initialize the OneMinuteAgent API.
+        Initialize the Nagents API.
         
         Args:
-            model_name: Name of the model to use (defaults to config value)
+            model_name: Name of the model to use
             use_custom_registry: If True, creates a new registry. If False, uses global registry.
-            show_thinking: Whether to show thinking process (defaults to config value)
+            show_thinking: Whether to show thinking process
         """
-        # Use config defaults if not provided
-        model_name = model_name or config.default_model_name
-        show_thinking = show_thinking if show_thinking is not None else config.default_show_thinking
+
+        model_name = model_name
+        show_thinking = show_thinking
         
         if use_custom_registry:
             self.registry = ToolRegistry()
@@ -45,15 +41,14 @@ class OneMinuteAgentAPI:
             self.registry = default_registry
         
         if not any(tool.domain == "emergency" for tool in self.registry.tools.values()):
-            emergency_provider = EmergencyToolsProvider()
-            self.registry.register_provider(emergency_provider)
+            self.registry.register_provider(emergency_tools)
         
         self.model_provider = OllamaProvider(model_name)
         self.tool_executor = ToolExecutor(self.registry)
         self.agent = OneMinuteAgent(
             model_provider=self.model_provider,
             tool_executor=self.tool_executor,
-            max_iterations=config.max_iterations,
+            max_iterations=max_iterations,
             show_thinking=show_thinking
         )
     
@@ -119,39 +114,8 @@ class OneMinuteAgentAPI:
                 "error": str(e)
             }
 
-def create_emergency_agent(model_name: str = None, show_thinking: bool = None) -> OneMinuteAgentAPI:
+def create_agent(model_name: str = None, show_thinking: bool = None) -> NagentsAPI:
     """
-    Quick factory function to create an one-minute agent.
-    Perfect for frontend integration.
+    Quick factory function to create a Nagents example agent that can help with emergency situations.
     """
-    return OneMinuteAgentAPI(model_name=model_name, show_thinking=show_thinking)
-
-def create_custom_emergency_agent(
-    model_name: str = None,
-    additional_tools: Optional[Dict[str, Any]] = None,
-    show_thinking: bool = None
-) -> OneMinuteAgentAPI:
-    """
-    Create an one-minute agent with custom tools.
-    
-    Args:
-        model_name: Model name (defaults to config value)
-        additional_tools: Dict of additional tools to register
-        show_thinking: Whether to show the agent's thinking process (defaults to config value)
-        
-    Returns:
-        Configured OneMinuteAgentAPI instance
-    """
-    api = OneMinuteAgentAPI(model_name=model_name, use_custom_registry=True, show_thinking=show_thinking)
-    
-    if additional_tools:
-        for name, tool_config in additional_tools.items():
-            api.registry.register_function(
-                name=name,
-                func=tool_config["func"],
-                description=tool_config["description"],
-                parameters=tool_config.get("parameters", {}),
-                domain=tool_config.get("domain", "custom")
-            )
-    
-    return api
+    return NagentsAPI(model_name=model_name, show_thinking=show_thinking)

@@ -1,11 +1,10 @@
 """
-Example usage of the OneMinuteAgent API.
-Shows how easy it is to integrate with frontends.
+Example usage of the Nagents Agent Framework.
+Shows how to use the emergency agent example.
 """
 import logging
-from ollama_agent import create_emergency_agent
+from nagents.examples.emergency import create_emergency_agent
 
-# Set up logging to see the thinking process
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 def main():
@@ -20,10 +19,12 @@ def main():
             break
             
         result = agent.chat(user_input)
-        print(f"OneMinute Agent: {result['response']}")
+        print(f"OneMinute Agent: {result.content}")
         
-        if result['tools_executed']:
-            print(f"Tools used: {len(result['tools_executed'])}")
+        if result.tools_executed:
+            print(f"Tools used: {len(result.tools_executed)}")
+        if result.metadata:
+            print(f"Metadata: {result.metadata}")
 
 if __name__ == "__main__":
     main() 
