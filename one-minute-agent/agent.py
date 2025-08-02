@@ -5,7 +5,7 @@ Extends BaseAgent with emergency-specific reasoning and behavior.
 import json
 from pathlib import Path
 from typing import Dict, Any, Optional
-from nagents.base.agent import BaseAgent
+from nagents import BaseAgent
 
 class OneMinuteAgent(BaseAgent):
     """
@@ -19,7 +19,7 @@ class OneMinuteAgent(BaseAgent):
     
     def _load_prompt_template(self) -> str:
         """Load the emergency agent prompt template"""
-        prompt_path = Path(__file__).parent.parent / "prompts" / "prompt.md"
+        prompt_path = Path(__file__).parent / "prompts" / "prompt.md"
         try:
             with open(prompt_path, "r") as file:
                 return file.read()
@@ -32,7 +32,6 @@ class OneMinuteAgent(BaseAgent):
         """
         user_input_lower = user_input.lower()
         
-        # Always use reasoning for emergency-related queries
         emergency_triggers = [
             "what's your emergency",
             "emergency",
@@ -46,7 +45,6 @@ class OneMinuteAgent(BaseAgent):
             "injured"
         ]
         
-        # Also use reasoning for initial contact - the agent should gather info
         greeting_triggers = [
             "hello",
             "hi",
@@ -57,7 +55,6 @@ class OneMinuteAgent(BaseAgent):
             "this is 911"
         ]
         
-        # Use reasoning mode if it's an emergency query OR initial contact
         return (any(trigger in user_input_lower for trigger in emergency_triggers) or
                 any(trigger in user_input_lower for trigger in greeting_triggers))
     
