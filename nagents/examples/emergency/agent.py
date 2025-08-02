@@ -5,7 +5,7 @@ Extends BaseAgent with emergency-specific reasoning and behavior.
 import json
 from pathlib import Path
 from typing import Dict, Any, Optional
-from ..base.agent import BaseAgent
+from nagents.base.agent import BaseAgent
 
 class OneMinuteAgent(BaseAgent):
     """

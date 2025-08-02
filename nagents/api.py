@@ -1,17 +1,17 @@
 """
-Frontend-friendly API for the OneMinuteAgent system.
+Frontend-friendly API for the Nagents system.
 Provides a clean interface for creating and using one-minute agents.
 """
 from typing import Optional, Dict, Any
 from .base.agent import AgentResponse
 from .base.tool_registry import ToolRegistry, ToolExecutor, default_registry
-from .agents.emergency_agent import OneMinuteAgent
+from .examples.emergency.agent import OneMinuteAgent
 from .providers.ollama_provider import OllamaProvider
-from .tools.emergency_tools import EmergencyToolsProvider
+from .examples.emergency.tools import tools as emergency_tools
 
-class OneMinuteAgentAPI:
+class NagentsAPI:
     """
-    Main API class for one-minute agent functionality.
+    Main API class for Nagents agent functionality.
     Designed to be easily pluggable into frontends.
     """
     
@@ -22,7 +22,7 @@ class OneMinuteAgentAPI:
         show_thinking: bool = False
     ):
         """
-        Initialize the OneMinuteAgent API.
+        Initialize the Nagents API.
         
         Args:
             model_name: Name of the Ollama model to use
@@ -34,8 +34,7 @@ class OneMinuteAgentAPI:
             self.registry = default_registry
         
         if not any(tool.domain == "emergency" for tool in self.registry.tools.values()):
-            emergency_provider = EmergencyToolsProvider()
-            self.registry.register_provider(emergency_provider)
+            self.registry.register_provider(emergency_tools)
         
         self.model_provider = OllamaProvider(model_name)
         self.tool_executor = ToolExecutor(self.registry)
@@ -108,20 +107,20 @@ class OneMinuteAgentAPI:
                 "error": str(e)
             }
 
-def create_emergency_agent(model_name: str = "gemma3n:e2b", show_thinking: bool = False) -> OneMinuteAgentAPI:
+def create_emergency_agent(model_name: str = "gemma3n:e2b", show_thinking: bool = False) -> NagentsAPI:
     """
-    Quick factory function to create an one-minute agent.
+    Quick factory function to create a Nagents example agent that can help with emergency situations.
     Perfect for frontend integration.
     """
-    return OneMinuteAgentAPI(model_name=model_name, show_thinking=show_thinking)
+    return NagentsAPI(model_name=model_name, show_thinking=show_thinking)
 
 def create_custom_emergency_agent(
     model_name: str = "gemma3n:e2b",
     additional_tools: Optional[Dict[str, Any]] = None,
     show_thinking: bool = False
-) -> OneMinuteAgentAPI:
+) -> NagentsAPI:
     """
-    Create an one-minute agent with custom tools.
+    Create a Nagents example agent with custom tools.
     
     Args:
         model_name: Ollama model name
@@ -129,9 +128,9 @@ def create_custom_emergency_agent(
         show_thinking: Whether to show the agent's thinking process
         
     Returns:
-        Configured OneMinuteAgentAPI instance
+        Configured NagentsAPI instance
     """
-    api = OneMinuteAgentAPI(model_name=model_name, use_custom_registry=True, show_thinking=show_thinking)
+    api = NagentsAPI(model_name=model_name, use_custom_registry=True, show_thinking=show_thinking)
     
     if additional_tools:
         for name, tool_config in additional_tools.items():
