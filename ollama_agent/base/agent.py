@@ -121,7 +121,13 @@ class BaseAgent(ABC):
         called_tools = set()
         
         system_prompt = self.build_system_prompt()
-        max_tools_per_conversation = 2 
+        # Import config here to avoid circular imports
+        import sys
+        import os
+        sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
+        from config.config import config
+        
+        max_tools_per_conversation = config.max_tools_per_conversation
         
         for iteration in range(self.max_iterations):
             if self.show_thinking:
@@ -231,7 +237,16 @@ class BaseAgent(ABC):
     
     def _get_final_answer(self) -> str:
         """Get the final answer from the model"""
-        final_prompt = "Based on the information you have gathered, provide your final response to the 911 operator. Be clear, specific, and actionable. Respond with just the answer text, not JSON format."
+        final_prompt = """Based on the information you have gathered, provide your final response to the 911 operator. 
+
+CRITICAL: You are an AI monitoring system reporting ON BEHALF of a person experiencing an emergency. 
+- Use third person (the person, they, them) - NEVER first person (I, me, my)
+- Report what you've observed about the person's condition
+- Be clear, specific, and actionable
+- Respond with just the answer text, not JSON format
+
+Example: "The person is experiencing [condition]. Their vital signs show [data]. They are located at [location] and need immediate medical assistance."
+"""
         
         self.messages.append(Message(
             role="system", 
