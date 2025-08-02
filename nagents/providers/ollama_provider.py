@@ -6,6 +6,12 @@ import ollama
 from typing import List
 from ..base.agent import ModelProvider, Message
 
+# Import the centralized config
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
+from config.config import config
+
 class OllamaProvider(ModelProvider):
     """Ollama implementation of ModelProvider protocol"""
     

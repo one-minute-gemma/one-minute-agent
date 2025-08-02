@@ -18,6 +18,7 @@ class NagentsAPI:
     def __init__(
         self, 
         model_name: str = None,
+        model_name: str = None,
         use_custom_registry: bool = False,
         show_thinking: bool = None,
         max_iterations: int = 5
