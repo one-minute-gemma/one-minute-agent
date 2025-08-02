@@ -7,7 +7,7 @@ from .base.agent import AgentResponse
 from .base.tool_registry import ToolRegistry, ToolExecutor, default_registry
 from .examples.emergency.agent import OneMinuteAgent
 from .providers.ollama_provider import OllamaProvider
-from .examples.emergency.tools import tools as emergency_tools
+from .examples.emergency.tools import emergency_tools
 
 class NagentsAPI:
     """
@@ -17,17 +17,23 @@ class NagentsAPI:
     
     def __init__(
         self, 
-        model_name: str = "gemma3n:e2b",
+        model_name: str = None,
         use_custom_registry: bool = False,
-        show_thinking: bool = False
+        show_thinking: bool = None,
+        max_iterations: int = 5
     ):
         """
         Initialize the Nagents API.
         
         Args:
-            model_name: Name of the Ollama model to use
+            model_name: Name of the model to use
             use_custom_registry: If True, creates a new registry. If False, uses global registry.
+            show_thinking: Whether to show thinking process
         """
+
+        model_name = model_name
+        show_thinking = show_thinking
+        
         if use_custom_registry:
             self.registry = ToolRegistry()
         else:
@@ -41,7 +47,7 @@ class NagentsAPI:
         self.agent = OneMinuteAgent(
             model_provider=self.model_provider,
             tool_executor=self.tool_executor,
-            max_iterations=2,
+            max_iterations=max_iterations,
             show_thinking=show_thinking
         )
     
@@ -107,39 +113,8 @@ class NagentsAPI:
                 "error": str(e)
             }
 
-def create_emergency_agent(model_name: str = "gemma3n:e2b", show_thinking: bool = False) -> NagentsAPI:
+def create_agent(model_name: str = None, show_thinking: bool = None) -> NagentsAPI:
     """
     Quick factory function to create a Nagents example agent that can help with emergency situations.
-    Perfect for frontend integration.
     """
     return NagentsAPI(model_name=model_name, show_thinking=show_thinking)
-
-def create_custom_emergency_agent(
-    model_name: str = "gemma3n:e2b",
-    additional_tools: Optional[Dict[str, Any]] = None,
-    show_thinking: bool = False
-) -> NagentsAPI:
-    """
-    Create a Nagents example agent with custom tools.
-    
-    Args:
-        model_name: Ollama model name
-        additional_tools: Dict of additional tools to register
-        show_thinking: Whether to show the agent's thinking process
-        
-    Returns:
-        Configured NagentsAPI instance
-    """
-    api = NagentsAPI(model_name=model_name, use_custom_registry=True, show_thinking=show_thinking)
-    
-    if additional_tools:
-        for name, tool_config in additional_tools.items():
-            api.registry.register_function(
-                name=name,
-                func=tool_config["func"],
-                description=tool_config["description"],
-                parameters=tool_config.get("parameters", {}),
-                domain=tool_config.get("domain", "custom")
-            )
-    
-    return api
