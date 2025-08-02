@@ -21,7 +21,11 @@ print(result["response"])
 from .agent import OneMinuteAgent
 from .tools import emergency_tools, tools
 
-def create_emergency_agent(model_name: str = "gemma3n:e2b", show_thinking: bool = False):
+def create_emergency_agent(
+        model_name: str = "gemma3n:e2b", 
+        show_thinking: bool = False, 
+        max_iterations: int = 2, 
+        ):
     """
     Create a ready-to-use emergency agent.
     
@@ -46,7 +50,7 @@ def create_emergency_agent(model_name: str = "gemma3n:e2b", show_thinking: bool 
     agent = OneMinuteAgent(
         model_provider=model_provider,
         tool_executor=tool_executor,
-        max_iterations=2,
+        max_iterations=max_iterations,
         show_thinking=show_thinking
     )
     

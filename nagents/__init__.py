@@ -13,7 +13,7 @@ and tool calling work seamlessly with smaller local models.
 
 ## Quick Start:
 ```python
-from ollama_agent import BaseAgent, ToolRegistry, ToolProvider
+from nagents import BaseAgent, ToolRegistry, ToolProvider
 
 # Create tools
 def my_tool():
@@ -38,7 +38,7 @@ class MyAgent(BaseAgent):
 ## Examples:
 ```python
 # Emergency agent example
-from ollama_agent.examples.emergency import create_emergency_agent
+from nagents.examples.emergency import create_emergency_agent
 agent = create_emergency_agent()
 ```
 """
@@ -75,6 +75,6 @@ __all__ = [
 ]
 
 # Examples are imported separately:
-# from ollama_agent.examples.emergency import create_emergency_agent
-# from ollama_agent.examples.customer_service import create_support_agent  # Future
-# from ollama_agent.examples.coding import create_coding_agent            # Future
+# from nagents.examples.emergency import create_emergency_agent
+# from nagents.examples.customer_service import create_support_agent  # Future
+# from nagents.examples.coding import create_coding_agent            # Future
