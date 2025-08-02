@@ -16,9 +16,8 @@ class OllamaProvider(ModelProvider):
     """Ollama implementation of ModelProvider protocol"""
     
     def __init__(self, model_name: str = None):
-        # Use config default if no model name provided
-        self.model_name = model_name or config.default_model_name
-    
+        self.model_name = model_name
+
     def chat(self, messages: List[Message], system_prompt: str) -> str:
         """Chat with Ollama model"""
         ollama_messages = [

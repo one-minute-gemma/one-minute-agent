@@ -21,13 +21,47 @@ class ToolDefinition:
     domain: str = "general"
     async_func: bool = False
 
-class ToolProvider(ABC):
+class ToolProvider():
     """Abstract base for tool providers"""
     
-    @abstractmethod
-    def get_tools(self) -> List[ToolDefinition]:
+    def get_tools(self, tools: List[Callable], domain: str = "general") -> List[ToolDefinition]:
         """Return list of tools provided by this provider"""
-        pass
+        return self.parse_tools(tools, domain)
+        
+    def parse_tools(self, tools: List[Callable], domain: str = "general") -> List[ToolDefinition]:
+        """Parse a list of tool functions into a list of ToolDefinitions"""
+        return [self.parse_tool(tool, domain) for tool in tools]
+
+    def parse_tool(self, tool: Callable, domain: str = "general") -> ToolDefinition:
+        """Parse a tool function into a ToolDefinition"""
+        # Convert parameters to JSON-serializable format
+        sig = inspect.signature(tool)
+        parameters = {}
+        
+        for param_name, param in sig.parameters.items():
+            param_info = {
+                "name": param_name,
+                "kind": param.kind.name,  # Convert enum to string
+            }
+            
+            # Add type annotation if available
+            if param.annotation != inspect.Parameter.empty:
+                param_info["annotation"] = str(param.annotation)
+            
+            # Add default value if available
+            if param.default != inspect.Parameter.empty:
+                param_info["default"] = param.default
+            
+            parameters[param_name] = param_info
+        
+        return ToolDefinition(
+            name=tool.__name__,
+            description=tool.__doc__ or "",
+            parameters=parameters,
+            func=tool,
+            domain=domain,
+            async_func=inspect.iscoroutinefunction(tool)
+        )
 
 class ToolRegistry:
     """
