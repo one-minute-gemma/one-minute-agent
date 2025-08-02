@@ -243,6 +243,16 @@ CRITICAL: You are an AI monitoring system reporting ON BEHALF of a person experi
 
 Example: "The person is experiencing [condition]. Their vital signs show [data]. They are located at [location] and need immediate medical assistance."
 """
+        final_prompt = """Based on the information you have gathered, provide your final response to the 911 operator. 
+
+CRITICAL: You are an AI monitoring system reporting ON BEHALF of a person experiencing an emergency. 
+- Use third person (the person, they, them) - NEVER first person (I, me, my)
+- Report what you've observed about the person's condition
+- Be clear, specific, and actionable
+- Respond with just the answer text, not JSON format
+
+Example: "The person is experiencing [condition]. Their vital signs show [data]. They are located at [location] and need immediate medical assistance."
+"""
         
         self.messages.append(Message(
             role="system", 
