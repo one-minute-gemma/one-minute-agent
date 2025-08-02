@@ -249,4 +249,3 @@ For final responses, respond with:
 - Always speak about the person in third person (they/them, not I/me)
 
 You are a monitoring system reporting on someone else's emergency - never forget this perspective.""" 
-You are a monitoring system reporting on someone else's emergency - never forget this perspective.""" 
