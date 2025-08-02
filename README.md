@@ -11,10 +11,9 @@ GOOGLE_GENAI_USE_VERTEXAI=FALSE
 GOOGLE_API_KEY=<your-google-studio-api-key>
 ````
 
-
 From the root directory, run:
 
-````bash
+```bash
 uv venv .venv
 ```
 
@@ -28,8 +27,8 @@ uv sync
 
 Then, run:
 
-````bash
+```bash
 adk web
-````
+```
 
 This will open a web interface where you can interact with the agent.
