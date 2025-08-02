@@ -5,5 +5,5 @@ Run this from the project root directory.
 """
 
 if __name__ == "__main__":
-    from ollama_agent.agent import main
-    main() 
+    from ollama_agent import example
+    example.main()
