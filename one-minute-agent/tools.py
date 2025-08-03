@@ -85,7 +85,7 @@ async def get_video_input() -> Dict[str, Any]:
     print("📹 Getting video input")
     
     current_dir = Path(__file__).parent.parent
-    sample_images_dir = current_dir / "stuff" / "sample_images"
+    sample_images_dir = current_dir / "one-minute-agent" / "stuff" / "sample_images"
     
     image_files = [
         "example_1.jpeg",
@@ -95,17 +95,20 @@ async def get_video_input() -> Dict[str, Any]:
         "example_6.jpg"
     ]
     
-    selected_image = random.choice(image_files)
-    image_path = sample_images_dir / selected_image
-    
     try:
+        selected_image = random.choice(image_files)
+        image_path = sample_images_dir / selected_image
+        
+        print(f"📹 Loading image: {image_path}")
+        print(f"📹 Image exists: {image_path.exists()}")
+
         with open(image_path, "rb") as image_file:
             image_data = image_file.read()
             image_base64 = base64.b64encode(image_data).decode('utf-8')
             
         mime_type = "image/jpeg" if selected_image.endswith(('.jpg', '.jpeg')) else "image/png"
         
-        return {
+        result = {
             "image": {
                 "data": image_base64,
                 "mime_type": mime_type,
@@ -113,6 +116,10 @@ async def get_video_input() -> Dict[str, Any]:
             },
             "description": f"Emergency scene captured from video feed: {selected_image}"
         }
+        
+        print(f"📹 Returning image data - filename: {selected_image}, size: {len(image_base64)} chars")
+        return result
+        
     except Exception as e:
         print(f"Error loading image {selected_image}: {e}")
 
