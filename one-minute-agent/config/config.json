@@ -6,8 +6,8 @@
   },
   "agent": {
     "max_iterations": 2,
-    "show_thinking": false,
-    "emergency_mode": true
+    "show_thinking": true,
+    "always_use_reasoning": true
   },
   "tools": {
     "max_tools_per_conversation": 2,
