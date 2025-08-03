@@ -1210,6 +1210,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-core" },
     { name = "pydantic-settings" },
+    { name = "pyobjc-framework-corewlan" },
     { name = "pyparsing" },
     { name = "python-dateutil" },
     { name = "python-dotenv" },
@@ -1308,6 +1309,7 @@ requires-dist = [
     { name = "pydantic", specifier = "==2.11.7" },
     { name = "pydantic-core", specifier = "==2.33.2" },
     { name = "pydantic-settings", specifier = "==2.10.1" },
+    { name = "pyobjc-framework-corewlan", specifier = ">=11.1" },
     { name = "pyparsing", specifier = "==3.2.3" },
     { name = "python-dateutil", specifier = "==2.9.0.post0" },
     { name = "python-dotenv", specifier = "==1.1.1" },
@@ -1597,6 +1599,49 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/68/85/1ea668bbab3c50071ca613c6ab30047fb36ab0da1b92fa8f17bbc38fd36c/pydantic_settings-2.10.1.tar.gz", hash = "sha256:06f0062169818d0f5524420a360d632d5857b83cffd4d42fe29597807a1614ee", size = 172583, upload-time = "2025-06-24T13:26:46.841Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/58/f0/427018098906416f580e3cf1366d3b1abfb408a0652e9f31600c24a1903c/pydantic_settings-2.10.1-py3-none-any.whl", hash = "sha256:a60952460b99cf661dc25c29c0ef171721f98bfcb52ef8d9ea4c943d7c8cc796", size = 45235, upload-time = "2025-06-24T13:26:45.485Z" },
+]
+
+[[package]]
+name = "pyobjc-core"
+version = "11.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e8/e9/0b85c81e2b441267bca707b5d89f56c2f02578ef8f3eafddf0e0c0b8848c/pyobjc_core-11.1.tar.gz", hash = "sha256:b63d4d90c5df7e762f34739b39cc55bc63dbcf9fb2fb3f2671e528488c7a87fe", size = 974602, upload-time = "2025-06-14T20:56:34.189Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c5/24/12e4e2dae5f85fd0c0b696404ed3374ea6ca398e7db886d4f1322eb30799/pyobjc_core-11.1-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:18986f83998fbd5d3f56d8a8428b2f3e0754fd15cef3ef786ca0d29619024f2c", size = 676431, upload-time = "2025-06-14T20:44:49.908Z" },
+    { url = "https://files.pythonhosted.org/packages/f7/79/031492497624de4c728f1857181b06ce8c56444db4d49418fa459cba217c/pyobjc_core-11.1-cp313-cp313t-macosx_10_13_universal2.whl", hash = "sha256:8849e78cfe6595c4911fbba29683decfb0bf57a350aed8a43316976ba6f659d2", size = 719330, upload-time = "2025-06-14T20:44:51.621Z" },
+    { url = "https://files.pythonhosted.org/packages/ed/7d/6169f16a0c7ec15b9381f8bf33872baf912de2ef68d96c798ca4c6ee641f/pyobjc_core-11.1-cp314-cp314-macosx_11_0_universal2.whl", hash = "sha256:8cb9ed17a8d84a312a6e8b665dd22393d48336ea1d8277e7ad20c19a38edf731", size = 667203, upload-time = "2025-06-14T20:44:53.262Z" },
+    { url = "https://files.pythonhosted.org/packages/49/0f/f5ab2b0e57430a3bec9a62b6153c0e79c05a30d77b564efdb9f9446eeac5/pyobjc_core-11.1-cp314-cp314t-macosx_11_0_universal2.whl", hash = "sha256:f2455683e807f8541f0d83fbba0f5d9a46128ab0d5cc83ea208f0bec759b7f96", size = 708807, upload-time = "2025-06-14T20:44:54.851Z" },
+]
+
+[[package]]
+name = "pyobjc-framework-cocoa"
+version = "11.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pyobjc-core" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4b/c5/7a866d24bc026f79239b74d05e2cf3088b03263da66d53d1b4cf5207f5ae/pyobjc_framework_cocoa-11.1.tar.gz", hash = "sha256:87df76b9b73e7ca699a828ff112564b59251bb9bbe72e610e670a4dc9940d038", size = 5565335, upload-time = "2025-06-14T20:56:59.683Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4e/0b/a01477cde2a040f97e226f3e15e5ffd1268fcb6d1d664885a95ba592eca9/pyobjc_framework_cocoa-11.1-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:54e93e1d9b0fc41c032582a6f0834befe1d418d73893968f3f450281b11603da", size = 389049, upload-time = "2025-06-14T20:46:53.757Z" },
+    { url = "https://files.pythonhosted.org/packages/bc/e6/64cf2661f6ab7c124d0486ec6d1d01a9bb2838a0d2a46006457d8c5e6845/pyobjc_framework_cocoa-11.1-cp313-cp313t-macosx_10_13_universal2.whl", hash = "sha256:fd5245ee1997d93e78b72703be1289d75d88ff6490af94462b564892e9266350", size = 393110, upload-time = "2025-06-14T20:46:54.894Z" },
+    { url = "https://files.pythonhosted.org/packages/33/87/01e35c5a3c5bbdc93d5925366421e10835fcd7b23347b6c267df1b16d0b3/pyobjc_framework_cocoa-11.1-cp314-cp314-macosx_11_0_universal2.whl", hash = "sha256:aede53a1afc5433e1e7d66568cc52acceeb171b0a6005407a42e8e82580b4fc0", size = 392644, upload-time = "2025-06-14T20:46:56.503Z" },
+    { url = "https://files.pythonhosted.org/packages/c1/7c/54afe9ffee547c41e1161691e72067a37ed27466ac71c089bfdcd07ca70d/pyobjc_framework_cocoa-11.1-cp314-cp314t-macosx_11_0_universal2.whl", hash = "sha256:1b5de4e1757bb65689d6dc1f8d8717de9ec8587eb0c4831c134f13aba29f9b71", size = 396742, upload-time = "2025-06-14T20:46:57.64Z" },
+]
+
+[[package]]
+name = "pyobjc-framework-corewlan"
+version = "11.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pyobjc-core" },
+    { name = "pyobjc-framework-cocoa" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c6/d8/03aff3c75485fc999e260946ef1e9adf17640a6e08d7bf603d31cfcf73fc/pyobjc_framework_corewlan-11.1.tar.gz", hash = "sha256:4a8afea75393cc0a6fe696e136233aa0ed54266f35a47b55a3583f4cb078e6ce", size = 65792, upload-time = "2025-06-14T20:57:16.931Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ef/12/792146e163aa4504bc7870c77c4ec2425f9a05fa615a2b5c9cbec89b0fc6/pyobjc_framework_corewlan-11.1-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:3c66643a97fcf3aa797fda997a3afc28d8d9bba9727dd5c0e68a313899d780f7", size = 10026, upload-time = "2025-06-14T20:48:42.626Z" },
+    { url = "https://files.pythonhosted.org/packages/d8/e8/e0bf4c66192e85fb92a3ae01b50e34f2283568f7a0e5548f52db81b8b146/pyobjc_framework_corewlan-11.1-cp313-cp313t-macosx_10_13_universal2.whl", hash = "sha256:6dc28264b56b18096c8869cce3f85e519fd27936f19524bb77458572ccfd7518", size = 10178, upload-time = "2025-06-14T20:48:43.309Z" },
+    { url = "https://files.pythonhosted.org/packages/8e/c1/c860300f585de3f57b9f6c30c554e10708d57ec5ac1e920214b496638c0c/pyobjc_framework_corewlan-11.1-cp314-cp314-macosx_11_0_universal2.whl", hash = "sha256:872de75409a710bb9a461e64e97185f8489d01898ec1b02c3e058c04606b61cf", size = 10051, upload-time = "2025-06-14T20:48:43.993Z" },
+    { url = "https://files.pythonhosted.org/packages/ff/76/5bdb6b672d7b59a477cfcb35d7c0166a4bd86e7bc571ff693d62fccb75b2/pyobjc_framework_corewlan-11.1-cp314-cp314t-macosx_11_0_universal2.whl", hash = "sha256:14c7af9135ba0a920192af4dc50219bbf6185fcbb5de7041f097e1a1c8509587", size = 10210, upload-time = "2025-06-14T20:48:44.717Z" },
 ]
 
 [[package]]
