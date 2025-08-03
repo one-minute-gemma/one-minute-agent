@@ -48,7 +48,8 @@ class BaseAgent(ABC):
         model_provider: ModelProvider,
         tool_executor: Optional[ToolExecutor] = None,
         max_iterations: int = 3,
-        show_thinking: bool = False
+        show_thinking: bool = False,
+        always_use_reasoning: bool = True
     ):
         self.model_provider = model_provider
         self.tool_executor = tool_executor
@@ -56,6 +57,7 @@ class BaseAgent(ABC):
         self.messages: List[Message] = []
         self.logger = logging.getLogger(f"{self.__class__.__name__}")
         self.show_thinking = show_thinking
+        self.always_use_reasoning = always_use_reasoning
 
     # Public API
 
@@ -123,8 +125,6 @@ class BaseAgent(ABC):
         
         system_prompt = self.build_system_prompt()
         
-        max_tools_per_conversation = self.max_iterations
-        
         for iteration in range(self.max_iterations):
             if self.show_thinking:
                 self.logger.info(f"🧠 Reasoning iteration {iteration + 1}/{self.max_iterations}")
@@ -145,15 +145,10 @@ class BaseAgent(ABC):
             
             action = parsed.get("action")
             
-            if (not action or 
-                action.lower() == "none" or 
-                len(executed_tools) >= max_tools_per_conversation):
+            if (not action or action.lower() == "none"):
                 
-                if self.show_thinking:
-                    if len(executed_tools) >= max_tools_per_conversation:
-                        self.logger.info(f"🚨 Emergency speed limit: {max_tools_per_conversation} tools used, providing answer")
-                    else:
-                        self.logger.info("✅ Agent ready to provide final answer")
+                if self.show_thinking: 
+                    self.logger.info("✅ Agent ready to provide final answer")
                 break
             
             if (self.tool_executor and 
@@ -180,12 +175,6 @@ class BaseAgent(ABC):
                     role="system", 
                     content=f"Tool result: {json.dumps(tool_result)}"
                 ))
-                
-                if len(executed_tools) >= max_tools_per_conversation:
-                    if self.show_thinking:
-                        self.logger.info(f"🚨 Reached emergency tool limit ({max_tools_per_conversation}), forcing final answer")
-                    break
-                
             else:
                 if self.show_thinking:
                     if action in called_tools:
@@ -205,9 +194,8 @@ class BaseAgent(ABC):
             content=final_response,
             tools_executed=executed_tools,
             metadata={
-                "iterations": iteration + 1, 
-                "tools_used": len(executed_tools),
-                "emergency_mode": True
+                "thinking_iterations": iteration + 1, 
+                "tools_used": len(executed_tools)
             }
         )
     
@@ -233,26 +221,17 @@ class BaseAgent(ABC):
     
     def _get_final_answer(self) -> str:
         """Get the final answer from the model"""
-        final_prompt = """Based on the information you have gathered, provide your final response to the 911 operator. 
+        final_prompt = """FINAL ANSWER MODE: Provide your response to the 911 operator as plain text only.
 
-CRITICAL: You are an AI monitoring system reporting ON BEHALF of a person experiencing an emergency. 
-- Use third person (the person, they, them) - NEVER first person (I, me, my)
-- Report what you've observed about the person's condition
-- Be clear, specific, and actionable
-- Respond with just the answer text, not JSON format
+            CRITICAL: You are an AI monitoring system reporting ON BEHALF of a person experiencing an emergency. 
+            - Use third person (the person, they, them) - NEVER first person (I, me, my)
+            - Report what you've observed about the person's condition  
+            - Be clear, specific, and actionable
+            - RESPOND WITH PLAIN TEXT ONLY - NO JSON, NO FORMATTING, NO BRACKETS
 
-Example: "The person is experiencing [condition]. Their vital signs show [data]. They are located at [location] and need immediate medical assistance."
-"""
-        final_prompt = """Based on the information you have gathered, provide your final response to the 911 operator. 
+            Example: "The person is experiencing chest pain. Their vital signs show heart rate 100, blood pressure 120, oxygen 95. They need immediate medical assistance at [location]."
 
-CRITICAL: You are an AI monitoring system reporting ON BEHALF of a person experiencing an emergency. 
-- Use third person (the person, they, them) - NEVER first person (I, me, my)
-- Report what you've observed about the person's condition
-- Be clear, specific, and actionable
-- Respond with just the answer text, not JSON format
-
-Example: "The person is experiencing [condition]. Their vital signs show [data]. They are located at [location] and need immediate medical assistance."
-"""
+            Your response:"""
         
         self.messages.append(Message(
             role="system", 
