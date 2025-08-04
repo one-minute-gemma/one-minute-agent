@@ -221,22 +221,42 @@ class BaseAgent(ABC):
     
     def _get_final_answer(self) -> str:
         """Get the final answer from the model"""
-        final_prompt = """FINAL ANSWER MODE: Provide your response to the 911 operator as plain text only.
+        final_prompt = """FINAL ANSWER MODE: Based on the conversation context and actual data gathered from tool results, provide your final response clearly and decisively.
 
-            CRITICAL: You are an AI monitoring system reporting ON BEHALF of a person experiencing an emergency. 
-            - Use third person (the person, they, them) - NEVER first person (I, me, my)
-            - Report what you've observed about the person's condition  
-            - Be clear, specific, and actionable
-            - RESPOND WITH PLAIN TEXT ONLY - NO JSON, NO FORMATTING, NO BRACKETS
+        CRITICAL RULES:
 
-            Example: "The person is experiencing chest pain. Their vital signs show heart rate 100, blood pressure 120, oxygen 95. They need immediate medical assistance at [location]."
+        * ONLY provide verified information explicitly obtained from previous tool results.
+        * NEVER assume or invent data.
+        * Clearly indicate if essential data (e.g., location) is missing.
+        * Provide an immediate, actionable response relevant to the emergency.
+        * Avoid placeholders or requests for further action or tool usage.
 
-            Your response:"""
+        Answer strictly in this format:
+        {
+        "answer": "Your complete and precise final response here"
+        }
+
+        Examples of BAD responses:
+
+        * {
+        "answer": "I need additional tools or information to respond."
+        }
+        * {
+        "answer": "More data must be collected before I can answer."
+        }
+
+        Example of a GOOD response:
+
+        * {
+        "answer": "The person is experiencing severe chest pain. Their location is 123 Main Street. Immediate medical assistance is required."
+        }
+
+        Provide your final response now:"""
         
-        response = self.model_provider.chat(self.messages, self.build_system_prompt())
+        response = self.model_provider.chat(self.messages, final_prompt)
         final_answer = self.parse_final_response(response)
         
         if self.show_thinking:
             self.logger.info(f"Final answer: {final_answer}")
         
-        return final_answer 
+        return final_answer
