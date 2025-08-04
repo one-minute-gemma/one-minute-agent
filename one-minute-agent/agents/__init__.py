@@ -67,7 +67,7 @@ def create_agent(
             tool_executor=tool_executor,
             max_iterations=max_iterations,
             show_thinking=show_thinking,
-            always_show_reasoning=always_use_reasoning
+            always_use_reasoning=always_use_reasoning
         )
 
 
