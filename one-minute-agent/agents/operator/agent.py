@@ -33,7 +33,6 @@ class OneMinuteAgent(BaseAgent):
         """
         user_input_lower = user_input.lower()
         
-        # Always use reasoning for emergency-related queries
         emergency_triggers = [
             "what's your emergency",
             "emergency",
