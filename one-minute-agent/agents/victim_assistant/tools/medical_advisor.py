@@ -5,7 +5,6 @@ from typing import Dict, Any
 import sys
 from pathlib import Path
 
-# Add medical_kb to path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from medical_kb import get_medical_kb

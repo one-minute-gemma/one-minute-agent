@@ -35,7 +35,6 @@ class VictimAssistantAgent(BaseAgent):
 
         user_input_lower = user_input.lower()
         
-        # Use reasoning for medical and emergency situations
         assistance_triggers = [
             "help", "pain", "hurt", "bleeding", "breathe", "breathing",
             "chest", "heart", "dizzy", "unconscious", "fell", "injury",
