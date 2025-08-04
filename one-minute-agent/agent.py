@@ -70,17 +70,51 @@ class OneMinuteAgent(BaseAgent):
         if self.tool_executor:
             available_tools = self.tool_executor.get_available_tools()
         
-        tools_json = json.dumps(available_tools, indent=2)
+        tools_display = self._format_tools_display(available_tools)
         
         return f"""{self.prompt_template}
 
             ## AVAILABLE EMERGENCY TOOLS:
-            {tools_json}
-
-            Available tools: {', '.join(available_tools.keys()) if available_tools else 'None'}
+            {tools_display}
 
             Remember: You are communicating with a 911 operator. Be decisive, clear, and prioritize life-saving information.
             """
+    
+    def _format_tools_display(self, tools: Dict[str, Dict]) -> str:
+        """Format tools for readable display with descriptions and parameters"""
+        if not tools:
+            return "No tools available."
+        
+        formatted_tools = []
+        
+        for tool_name, tool_info in tools.items():
+            description = tool_info.get('description', 'No description available').strip()
+            parameters = tool_info.get('parameters', {})
+            domain = tool_info.get('domain', 'general')
+            
+            # Format parameters
+            param_list = []
+            for param_name, param_info in parameters.items():
+                param_type = param_info.get('annotation', 'any')
+                default_val = param_info.get('default', None)
+                
+                if default_val is not None:
+                    param_str = f"{param_name}: {param_type} = {default_val}"
+                else:
+                    param_str = f"{param_name}: {param_type}"
+                
+                param_list.append(param_str)
+            
+            params_display = f"({', '.join(param_list)})" if param_list else "(no parameters)"
+            
+            tool_display = f"""
+            ### {tool_name}{params_display}
+            **Description:** {description}
+            **Domain:** {domain}"""
+            
+            formatted_tools.append(tool_display)
+        
+        return "\n".join(formatted_tools)
     
     def parse_reasoning_response(self, response: str) -> Optional[Dict[str, Any]]:
         """Parse emergency reasoning response with improved error handling"""
