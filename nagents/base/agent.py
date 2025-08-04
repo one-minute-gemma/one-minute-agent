@@ -233,11 +233,6 @@ class BaseAgent(ABC):
 
             Your response:"""
         
-        self.messages.append(Message(
-            role="system", 
-            content=final_prompt
-        ))
-        
         response = self.model_provider.chat(self.messages, self.build_system_prompt())
         final_answer = self.parse_final_response(response)
         
