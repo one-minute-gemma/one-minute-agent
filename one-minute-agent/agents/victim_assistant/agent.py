@@ -30,6 +30,9 @@ class VictimAssistantAgent(BaseAgent):
         """
         Victim assistant uses reasoning for medical emergencies, injury assessment, and guidance requests.
         """
+        if self.always_use_reasoning:
+            return True
+
         user_input_lower = user_input.lower()
         
         # Use reasoning for medical and emergency situations
