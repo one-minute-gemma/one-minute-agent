@@ -36,7 +36,6 @@ def create_emergency_agent(
     
     model_provider = OllamaProvider(model_name)
     
-    # Use the factory system - handles tool registration automatically
     agent = create_agent(
         agent_type=agent_type,
         model_provider=model_provider,
