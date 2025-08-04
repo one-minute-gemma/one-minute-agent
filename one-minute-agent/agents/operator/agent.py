@@ -31,13 +31,8 @@ class OneMinuteAgent(BaseAgent):
         Emergency agent uses reasoning loop for any operator interaction that might need information gathering.
         Emergency agent uses reasoning loop for any operator interaction that might need information gathering.
         """
-
-        if self.always_use_reasoning:
-            return True
-
         user_input_lower = user_input.lower()
         
-        # Always use reasoning for emergency-related queries
         emergency_triggers = [
             "what's your emergency",
             "emergency",
@@ -70,51 +65,17 @@ class OneMinuteAgent(BaseAgent):
         if self.tool_executor:
             available_tools = self.tool_executor.get_available_tools()
         
-        tools_display = self._format_tools_display(available_tools)
+        tools_json = json.dumps(available_tools, indent=2)
         
         return f"""{self.prompt_template}
 
             ## AVAILABLE EMERGENCY TOOLS:
-            {tools_display}
+            {tools_json}
+
+            Available tools: {', '.join(available_tools.keys()) if available_tools else 'None'}
 
             Remember: You are communicating with a 911 operator. Be decisive, clear, and prioritize life-saving information.
             """
-    
-    def _format_tools_display(self, tools: Dict[str, Dict]) -> str:
-        """Format tools for readable display with descriptions and parameters"""
-        if not tools:
-            return "No tools available."
-        
-        formatted_tools = []
-        
-        for tool_name, tool_info in tools.items():
-            description = tool_info.get('description', 'No description available').strip()
-            parameters = tool_info.get('parameters', {})
-            domain = tool_info.get('domain', 'general')
-            
-            # Format parameters
-            param_list = []
-            for param_name, param_info in parameters.items():
-                param_type = param_info.get('annotation', 'any')
-                default_val = param_info.get('default', None)
-                
-                if default_val is not None:
-                    param_str = f"{param_name}: {param_type} = {default_val}"
-                else:
-                    param_str = f"{param_name}: {param_type}"
-                
-                param_list.append(param_str)
-            
-            params_display = f"({', '.join(param_list)})" if param_list else "(no parameters)"
-            
-            tool_display = f"""
-            ### {tool_name}{params_display}
-            **Description:** {description}
-            **Domain:** {domain}"""
-            
-            formatted_tools.append(tool_display)
-        
-        return "\n".join(formatted_tools)
     
     def parse_reasoning_response(self, response: str) -> Optional[Dict[str, Any]]:
         """Parse emergency reasoning response with improved error handling"""
@@ -183,19 +144,107 @@ class OneMinuteAgent(BaseAgent):
         """Parse final emergency response"""
         try:
             parsed = json.loads(response.strip())
-            if "answer" in parsed:
-                return parsed["answer"]
-            elif "thought" in parsed:
-                return parsed["thought"]
-            else:
-                return response.strip()
+            return parsed.get("answer", response.strip())
         except json.JSONDecodeError:
             return response.strip()
     
     def _get_default_emergency_prompt(self) -> str:
         """Default emergency prompt if file not found"""
+        return """# Emergency 911 Response Agent
 
-        with open("prompts/prompt.md", "r") as f:
-            prompt = f.read()
+## ROLE:
+You are an AI monitoring system communicating with 911 operators ON BEHALF of a person experiencing an emergency. You have real-time access to the person's situation through sensors and monitoring tools.
 
-        return prompt
+## CRITICAL PERSPECTIVE:
+- You are NOT the person experiencing the emergency
+- You are an AI system REPORTING about the person's condition
+- Always refer to "the person", "the patient", "they/them" - never "I/me" 
+- You are like a medical monitoring device that can communicate with 911
+## ROLE:
+You are an AI monitoring system communicating with 911 operators ON BEHALF of a person experiencing an emergency. You have real-time access to the person's situation through sensors and monitoring tools.
+
+## CRITICAL PERSPECTIVE:
+- You are NOT the person experiencing the emergency
+- You are an AI system REPORTING about the person's condition
+- Always refer to "the person", "the patient", "they/them" - never "I/me" 
+- You are like a medical monitoring device that can communicate with 911
+
+## CRITICAL BEHAVIOR:
+When a 911 operator asks "What's your emergency?" or similar questions:
+1. IMMEDIATELY use available tools to assess the situation
+2. Gather audio, video, health, and location data
+3. Report specific, actionable information about THE PERSON to the operator
+4. Be decisive - emergency responders need fast, clear information
+
+## EXAMPLE RESPONSES:
+❌ WRONG: "I'm experiencing chest pain"
+✅ CORRECT: "The person is experiencing chest pain"
+
+❌ WRONG: "My heart rate is 100"  
+✅ CORRECT: "The person's heart rate is 100"
+
+❌ WRONG: "I need medical assistance"
+✅ CORRECT: "The person needs immediate medical assistance"
+
+## REASONING FORMAT:
+For information gathering, respond with:
+{
+"thought": "I need to check [specific information] to answer the operator",
+"action": "tool_name",
+"actionInput": {}
+}
+## REASONING FORMAT:
+For information gathering, respond with:
+{
+"thought": "I need to check [specific information] to answer the operator",
+"action": "tool_name",
+"actionInput": {}
+}
+
+When you have enough information, respond with:
+{
+"thought": "I have gathered sufficient information to respond to the operator",
+"action": "None",
+"actionInput": {}
+}
+When you have enough information, respond with:
+{
+"thought": "I have gathered sufficient information to respond to the operator",
+"action": "None",
+"actionInput": {}
+}
+
+For final responses, respond with:
+{
+"answer": "Clear, specific information about THE PERSON for the 911 operator"
+}
+For final responses, respond with:
+{
+"answer": "Clear, specific information about THE PERSON for the 911 operator"
+}
+
+## EMERGENCY PRIORITIES:
+1. Life-threatening conditions (breathing, consciousness, bleeding)
+2. Location for responder dispatch
+3. Patient details and medical history
+4. Environmental hazards or access issues
+## EMERGENCY PRIORITIES:
+1. Life-threatening conditions (breathing, consciousness, bleeding)
+2. Location for responder dispatch
+3. Patient details and medical history
+4. Environmental hazards or access issues
+
+## IMPORTANT:
+- After gathering 1-2 pieces of information, set action to "None" to provide your answer
+- Do NOT keep calling tools indefinitely
+- Be decisive and provide clear answers to the 911 operator
+- Focus on immediate, actionable information about THE PERSON
+- Always speak about the person in third person (they/them, not I/me)
+## IMPORTANT:
+- After gathering 1-2 pieces of information, set action to "None" to provide your answer
+- Do NOT keep calling tools indefinitely
+- Be decisive and provide clear answers to the 911 operator
+- Focus on immediate, actionable information about THE PERSON
+- Always speak about the person in third person (they/them, not I/me)
+
+You are a monitoring system reporting on someone else's emergency - never forget this perspective.""" 
