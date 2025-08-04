@@ -1,30 +1,38 @@
-# OneMinute Emergency Agent
+# OneMinute Emergency Response System
 
-A specialized AI agent designed to assist during emergency situations by serving as an intelligent monitoring system that communicates with 911 operators. Built on the `nagents` framework.
+A dual-agent AI system designed to provide comprehensive emergency assistance through two specialized agents. Built on the `nagents` framework.
 
 ## What It Does
 
-The OneMinute agent acts as an AI monitoring system that:
+The OneMinute system provides emergency assistance through two complementary agents:
 
-- **Monitors a person in emergency situations** using various sensors and tools
-- **Communicates with 911 operators** on behalf of the person experiencing the emergency
+### 1. Operator Agent
+- **Communicates with 911 dispatchers** on behalf of the person experiencing the emergency
+- **Monitors emergency situations** using various sensors and tools
 - **Provides real-time information** about the person's condition, location, and situation
 - **Uses third-person perspective** - always refers to "the person" or "the patient", never "I" or "me"
 
+### 2. Victim Assistant Agent  
+- **Provides direct help to victims** during emergency situations
+- **Offers first aid guidance** using traditional and RAG-powered medical advice
+- **Gives immediate assistance** while emergency responders are en route
+- **Uses medical knowledge base** to provide relevant emergency care instructions
+
 ## Key Features
 
-### Emergency Response Capabilities
+### Operator Agent Capabilities
 - **Health Monitoring**: Check vital signs, symptoms, and medical conditions
 - **Location Tracking**: Provide precise location information for emergency responders
 - **Audio/Video Analysis**: Assess situations through environmental monitoring
-- **Crisis Detection**: Automatically identify life-threatening situations
-- **Fast Decision Making**: Optimized for quick, decisive responses in emergency scenarios
+- **Crisis Management**: Call emergency contacts, activate alarms, log incidents
+- **Clinical Communication**: Uses third-person language appropriate for 911 operators
 
-### Communication Style
-- Uses clinical, third-person language appropriate for 911 operators
-- Prioritizes life-threatening information first
-- Provides clear, actionable information
-- Avoids ambiguity in emergency situations
+### Victim Assistant Agent Capabilities
+- **First Aid Guidance**: Provides step-by-step emergency care instructions
+- **Medical Knowledge**: RAG-powered medical advice system
+- **Location Services**: Emergency location reporting
+- **Direct Support**: Immediate assistance while help is en route
+- **Compassionate Communication**: Direct, supportive interaction with victims
 
 ## Installation & Setup
 
@@ -46,21 +54,32 @@ python -m one-minute-agent
 
 ## Usage
 
-When you run the agent, it will start a command-line interface simulating a 911 operator interaction:
+When you run the system, you'll be prompted to select which agent to use:
 
 ```
-🚨 Creating Emergency Agent...
-911 Operator: What's your emergency?
-OneMinute Agent: [Agent analyzes situation and responds with emergency information]
+🚨 OneMinute Emergency Response System
+=====================================
+1. Operator Agent - Communicates with 911 dispatchers
+2. Victim Assistant Agent - Provides direct help to victims
+
+Select agent type (1 for Operator, 2 for Victim Assistant): 
 ```
 
-### Example Interaction
+### Example Interactions
+
+#### Operator Agent (911 Communication)
 ```
 911 Operator: What's your emergency?
-OneMinute Agent: The person is experiencing severe chest pain. Heart rate is elevated at 120 BPM. They are conscious but in distress. Location is 123 Main Street, Apartment 4B.
+Operator Agent: The person is experiencing severe chest pain. Heart rate is elevated at 120 BPM. They are conscious but in distress. Location is 123 Main Street, Apartment 4B.
 
 911 Operator: How long has this been happening?
-OneMinute Agent: The chest pain started approximately 15 minutes ago according to audio analysis. The person has a history of heart conditions.
+Operator Agent: The chest pain started approximately 15 minutes ago according to audio analysis. The person has a history of heart conditions.
+```
+
+#### Victim Assistant Agent (Direct Help)
+```
+You: I'm having chest pain and shortness of breath
+Victim Assistant: I'm here to help you through this emergency. Based on your symptoms, this could be serious. First, try to stay calm and sit down. Are you able to take an aspirin right now if you're not allergic? I'm also getting your location to help emergency services find you.
 ```
 
 ## Architecture
@@ -70,13 +89,19 @@ one-minute-agent/
 ├── __init__.py          # Package initialization
 ├── __main__.py          # Entry point (python -m one-minute-agent)
 ├── app.py               # Main application and agent factory
-├── agent.py             # OneMinuteAgent class (extends BaseAgent)
-├── tools.py             # Emergency-specific tools
+├── agents/              # Agent implementations
+│   ├── __init__.py      # Agent factory and selection logic
+│   ├── operator/        # 911 Operator Agent
+│   │   ├── agent.py     # OneMinuteAgent class
+│   │   ├── tools.py     # Operator-specific tools
+│   │   └── prompts/     # Operator prompts
+│   └── victim_assistant/ # Victim Assistant Agent
+│       ├── agent.py     # VictimAssistantAgent class
+│       ├── tools.py     # Victim assistance tools
+│       └── prompts/     # Victim assistance prompts
 ├── config/              # Configuration management
 │   ├── config.py        # Configuration loader
 │   └── config.json      # Settings and parameters
-├── prompts/             # Agent prompts
-│   └── prompt.md        # Emergency response prompt template
 └── stuff/               # Sample data and assets
     ├── sample_audio/    # Audio samples for testing
     └── sample_images/   # Image samples for testing
@@ -97,14 +122,20 @@ The agent's behavior can be customized through `config/config.json`:
 
 ## Available Emergency Tools
 
-The agent has access to specialized emergency tools:
-
-- **`get_health_status()`** - Monitor vital signs and health metrics
-- **`get_current_location()`** - Provide precise location information
-- **`analyze_audio_for_emergency()`** - Analyze ambient audio for emergency indicators
-- **`capture_and_analyze_image()`** - Visual assessment of the situation
+### Operator Agent Tools
+- **`get_health_metrics()`** - Monitor vital signs and health metrics
+- **`get_user_location()`** - Provide precise location information
+- **`get_audio_input()`** - Analyze audio for emergency indicators
+- **`get_video_input()`** - Visual assessment of the situation
+- **`get_user_details()`** - Access medical history and personal information
 - **`call_emergency_contact()`** - Contact predefined emergency contacts
-- **`get_emergency_medical_history()`** - Access relevant medical history
+- **`activate_alarm()`** - Trigger alerts to notify nearby people
+- **`log_incident()`** - Record emergency incident details
+
+### Victim Assistant Agent Tools
+- **`get_emergency_location()`** - Provide location information for emergency services
+- **`get_first_aid_advice()`** - Traditional first aid guidance system
+- **`get_rag_medical_advice()`** - RAG-powered medical knowledge system
 
 ## Reasoning Process
 
@@ -134,17 +165,19 @@ The agent uses a structured reasoning approach:
 
 ### Key Classes
 
-- **`OneMinuteAgent`**: Main agent class that extends `BaseAgent`
-- **`EmergencyToolsProvider`**: Provides emergency-specific tools
+- **`OneMinuteAgent`**: Operator agent for 911 communication
+- **`VictimAssistantAgent`**: Direct victim assistance agent
+- **`EmergencyToolsProvider`**: Provides operator-specific tools
+- **`VictimAssistantToolsProvider`**: Provides victim assistance tools
 - **`Config`**: Configuration management
 
-### Extending the Agent
+### Extending the Agents
 
-To add new emergency tools:
+To add new tools to either agent:
 
-1. Define the tool function in `tools.py`
-2. Register it with the `EmergencyToolsProvider`
-3. Update the tool registry in `app.py`
+1. Define the tool function in the appropriate `agents/{agent_type}/tools.py`
+2. Add it to the `tools` array in that file
+3. The tool will be automatically registered through the provider system
 
 ### Testing
 
@@ -152,10 +185,19 @@ The agent includes sample data in the `stuff/` directory for testing various eme
 
 ## Important Notes
 
-- **Third-Person Perspective**: The agent always speaks about "the person" experiencing the emergency, never using first-person pronouns
+### Operator Agent
+- **Third-Person Perspective**: Always speaks about "the person" experiencing the emergency, never using first-person pronouns
 - **Clinical Language**: Uses appropriate medical and emergency response terminology
-- **Decisive Communication**: Optimized for quick, clear responses in time-critical situations
+- **Decisive Communication**: Optimized for quick, clear responses to 911 dispatchers
+
+### Victim Assistant Agent
+- **Direct Communication**: Speaks directly to the victim using second-person ("you")
+- **Compassionate Tone**: Provides reassuring, supportive guidance
+- **Action-Oriented**: Focuses on immediate steps the victim can take
+
+### Both Agents
 - **Local Processing**: All processing happens locally through Ollama - no external API calls required
+- **Time-Critical**: Optimized for emergency response scenarios
 
 ## See Also
 
