@@ -6,8 +6,8 @@ import random
 import base64
 import datetime
 from pathlib import Path
-from typing import Dict, Any, List
-from nagents.base.tool_registry import ToolProvider, ToolDefinition
+from typing import Dict, Any
+from nagents.base.tool_registry import ToolProvider
 
 class EmergencyToolsProvider(ToolProvider):
     """Provider for all emergency-related tools"""
