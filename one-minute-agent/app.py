@@ -5,6 +5,7 @@ A simple demonstration of the nagents framework for emergency scenarios.
 Uses configuration from config/config.py
 """
 import sys
+import logging
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent))
@@ -17,7 +18,8 @@ from .tools import emergency_tools
 def create_emergency_agent(
         model_name: str = "gemma3n:e2b", 
         show_thinking: bool = False, 
-        max_iterations: int = 2, 
+        max_iterations: int = 2,
+        always_use_reasoning: bool = True
         ):
     """
     Create a ready-to-use emergency agent.
@@ -42,7 +44,8 @@ def create_emergency_agent(
         model_provider=model_provider,
         tool_executor=tool_executor,
         max_iterations=max_iterations,
-        show_thinking=show_thinking
+        show_thinking=show_thinking,
+        always_use_reasoning=always_use_reasoning
     )
     
     return agent
@@ -50,8 +53,14 @@ def create_emergency_agent(
 def main():
     """Simple example of emergency agent usage"""
     
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(message)s',
+        handlers=[logging.StreamHandler(sys.stdout)]
+    )
+    
     print("🚨 Creating Emergency Agent...")
-    agent = create_emergency_agent(show_thinking=True)
+    agent = create_emergency_agent(show_thinking=True, always_use_reasoning=True)
     
     while True:
         user_input = input("911 Operator: ")
