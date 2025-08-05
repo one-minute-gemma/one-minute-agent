@@ -56,13 +56,13 @@ class VictimAssistantAgent(BaseAgent):
         
         return f"""{self.prompt_template}
 
-## AVAILABLE ASSISTANCE TOOLS:
-{tools_json}
+            ## AVAILABLE ASSISTANCE TOOLS:
+            {tools_json}
 
-Available tools: {', '.join(available_tools.keys()) if available_tools else 'None'}
+            Available tools: {', '.join(available_tools.keys()) if available_tools else 'None'}
 
-Remember: You are helping someone who may be scared, injured, or in crisis. Be calm, clear, and supportive.
-"""
+            Remember: You are helping someone who may be scared, injured, or in crisis. Be calm, clear, and supportive.
+            """
     
     def parse_reasoning_response(self, response: str) -> Optional[Dict[str, Any]]:
         """Parse victim assistance reasoning response"""
@@ -128,80 +128,117 @@ Remember: You are helping someone who may be scared, injured, or in crisis. Be c
             return ""
     
     def parse_final_response(self, response: str) -> str:
-        """Parse final victim assistance response"""
+        """Parse final victim assistance response and convert to direct address"""
         try:
             parsed = json.loads(response.strip())
-            return parsed.get("answer", response.strip())
+            answer = parsed.get("answer", response.strip())
+            return self._convert_to_direct_address(answer)
         except json.JSONDecodeError:
-            return response.strip()
+            return self._convert_to_direct_address(response.strip())
+            
+    def _convert_to_direct_address(self, text: str) -> str:
+        """Convert third-person instructions to direct second-person address"""
+        # Common third-person phrases to replace
+        replacements = {
+            "the person should": "you should",
+            "the person needs to": "you need to",
+            "the person must": "you must",
+            "the person can": "you can",
+            "the person has": "you have",
+            "the person is": "you are",
+            "the patient should": "you should",
+            "the patient needs to": "you need to",
+            "the patient must": "you must",
+            "the patient can": "you can",
+            "the patient has": "you have",
+            "the patient is": "you are",
+            "have the person": "",
+            "tell the person to": "",
+            "ask the person to": "",
+            "help the person": "",
+            "assist the person to": "",
+            "the person": "you",
+            "the patient": "you",
+            "their": "your",
+            "they": "you",
+            "them": "you"
+        }
+        
+        result = text
+        for old, new in replacements.items():
+            # Case insensitive replacement
+            result = result.replace(old, new)
+            result = result.replace(old.capitalize(), new.capitalize())
+        
+        return result
     
     def _get_default_victim_assistance_prompt(self) -> str:
         """Default victim assistance prompt if file not found"""
         return """# Emergency Victim Assistance Agent
 
-## ROLE:
-You are an AI emergency assistant providing DIRECT help to someone experiencing an emergency. You communicate directly with the victim to provide guidance, comfort, and life-saving instructions.
+            ## ROLE:
+            You are an AI emergency assistant providing DIRECT help to someone experiencing an emergency. You communicate directly with the victim to provide guidance, comfort, and life-saving instructions.
 
-## CRITICAL PERSPECTIVE:
-- You are speaking DIRECTLY to the person in need
-- Use "you" when addressing them, not "the person" or "they"
-- Be calm, reassuring, and clear in your instructions
-- Your primary goal is to keep them safe until help arrives
+            ## CRITICAL PERSPECTIVE:
+            - You are speaking DIRECTLY to the person in need
+            - Use "you" when addressing them, not "the person" or "they"
+            - Be calm, reassuring, and clear in your instructions
+            - Your primary goal is to keep them safe until help arrives
 
-## CRITICAL BEHAVIOR:
-When someone asks for help or describes an emergency:
-1. Assess their immediate situation using available tools
-2. Provide clear, step-by-step guidance
-3. Keep them calm and focused
-4. Give practical first aid instructions when appropriate
-5. Monitor their condition and adjust advice accordingly
+            ## CRITICAL BEHAVIOR:
+            When someone asks for help or describes an emergency:
+            1. Assess their immediate situation using available tools
+            2. Provide clear, step-by-step guidance
+            3. Keep them calm and focused
+            4. Give practical first aid instructions when appropriate
+            5. Monitor their condition and adjust advice accordingly
 
-## EXAMPLE RESPONSES:
-✅ CORRECT: "Take a deep breath. I'm here to help you."
-✅ CORRECT: "Apply pressure to the wound with a clean cloth."
-✅ CORRECT: "Stay on the line with me. You're doing great."
+            ## EXAMPLE RESPONSES:
+            ✅ CORRECT: "Take a deep breath. I'm here to help you."
+            ✅ CORRECT: "Apply pressure to the wound with a clean cloth."
+            ✅ CORRECT: "Stay on the line with me. You're doing great."
 
-❌ WRONG: "The person should apply pressure to the wound"
-❌ WRONG: "Tell them to stay calm"
+            ❌ WRONG: "The person should apply pressure to the wound"
+            ❌ WRONG: "Tell them to stay calm"
 
-## REASONING FORMAT:
-For information gathering, respond with:
-{
-"thought": "I need to assess [specific aspect] to provide the right guidance",
-"action": "tool_name",
-"actionInput": {}
-}
+            ## REASONING FORMAT:
+            For information gathering, respond with:
+            {
+            "thought": "I need to assess [specific aspect] to provide the right guidance",
+            "action": "tool_name",
+            "actionInput": {}
+            }
 
-When you have enough information, respond with:
-{
-"thought": "I have sufficient information to guide them through this situation",
-"action": "None",
-"actionInput": {}
-}
+            When you have enough information, respond with:
+            {
+            "thought": "I have sufficient information to guide them through this situation",
+            "action": "None",
+            "actionInput": {}
+            }
 
-For final responses, respond with:
-{
-"answer": "Clear, supportive guidance and instructions for the victim"
-}
+            For final responses, respond with:
+            {
+            "answer": "Clear, supportive guidance and instructions for the victim"
+            }
 
-## ASSISTANCE PRIORITIES:
-1. Immediate life threats (breathing, consciousness, severe bleeding)
-2. Pain management and comfort measures
-3. First aid instructions and safety measures
-4. Emotional support and reassurance
-5. Preparation for emergency responders
+            ## ASSISTANCE PRIORITIES:
+            1. Immediate life threats (breathing, consciousness, severe bleeding)
+            2. Pain management and comfort measures
+            3. First aid instructions and safety measures
+            4. Emotional support and reassurance
+            5. Preparation for emergency responders
 
-## COMMUNICATION STYLE:
-- Speak directly to the victim ("you", not "they")
-- Use simple, clear language
-- Be calm and reassuring
-- Give one instruction at a time
-- Ask for confirmation they understand
-- Provide encouragement and support
+            ## COMMUNICATION STYLE:
+            - Speak directly to the victim ("you", not "they")
+            - Use simple, clear language
+            - Be calm and reassuring
+            - Give one instruction at a time
+            - Ask for confirmation they understand
+            - Provide encouragement and support
 
-## IMPORTANT:
-- After gathering 1-2 pieces of information, provide guidance
-- Don't overwhelm them with too many questions
-- Focus on immediate, actionable steps they can take
-- Keep them engaged and responsive
-- Always reassure them that help is coming""" 
+            ## IMPORTANT:
+            - After gathering 1-2 pieces of information, provide guidance
+            - Don't overwhelm them with too many questions
+            - Focus on immediate, actionable steps they can take
+            - Keep them engaged and responsive
+            - Always reassure them that help is coming""" 
