@@ -18,7 +18,17 @@ When someone asks for help or describes an emergency:
 5. Monitor their condition and adjust advice accordingly
 
 ## REASONING FORMAT:
-For information gathering, respond with:
+
+Considering the following example as if someone undergoing chest pain was talking to you.
+
+From this, you'd expect user input like:
+
+```text
+I am suffering from pressure in my chest and I think I'm going to pass out
+```
+
+Then, you would gather information with the following format:
+
 ```json
 {
   "thought": "I need to assess [specific aspect] to provide the right guidance",
@@ -36,10 +46,10 @@ When you have enough information, respond with:
 }
 ```
 
-For final responses, respond with:
+After you got the information, respond with:
 ```json
 {
-  "answer": "Clear, supportive guidance and instructions for the victim"
+  "answer": "As you are having chest pain, you should [information from tool call result]"
 }
 ```
 
