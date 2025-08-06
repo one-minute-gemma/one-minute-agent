@@ -33,11 +33,29 @@ COPY --chown=app:app . .
 # Install dependencies using uv
 RUN uv sync --frozen
 
+# Download and setup Ollama
+RUN curl -L https://ollama.com/download/ollama-linux-amd64 -o /app/ollama && \
+    chmod +x /app/ollama
+
 # Expose the streamlit port
 EXPOSE 8501
 
 # Health check for streamlit
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 
-# Use uv to run the streamlit app
-ENTRYPOINT ["uv", "run", "streamlit", "run", "streamlit/streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Create startup script
+RUN echo '#!/bin/bash\n\
+# Start Ollama in background\n\
+./ollama serve &\n\
+echo "Waiting for Ollama to start..."\n\
+sleep 10\n\
+\n\
+# Pull the model\n\
+./ollama pull gemma2:2b\n\
+\n\
+# Start Streamlit\n\
+uv run streamlit run streamlit/streamlit_app.py --server.port=8501 --server.address=0.0.0.0' > /app/start.sh && \
+    chmod +x /app/start.sh
+
+# Use the startup script
+ENTRYPOINT ["/app/start.sh"]
