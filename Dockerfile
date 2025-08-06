@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     software-properties-common \
     git \
+    wget \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
@@ -33,9 +34,10 @@ COPY --chown=app:app . .
 # Install dependencies using uv
 RUN uv sync --frozen
 
-# Download and setup Ollama
-RUN curl -L https://ollama.com/download/ollama-linux-amd64 -o /app/ollama && \
-    chmod +x /app/ollama
+# Download and setup Ollama with better error handling
+RUN wget -O /app/ollama https://ollama.com/download/ollama-linux-amd64 && \
+    chmod +x /app/ollama && \
+    file /app/ollama
 
 # Expose the streamlit port
 EXPOSE 8501
@@ -43,17 +45,25 @@ EXPOSE 8501
 # Health check for streamlit
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 
-# Create startup script
+# Create startup script with better error handling
 RUN echo '#!/bin/bash\n\
-# Start Ollama in background\n\
+set -e\n\
+\n\
+echo "🔧 Starting Ollama service..."\n\
 ./ollama serve &\n\
-echo "Waiting for Ollama to start..."\n\
-sleep 10\n\
+OLLAMA_PID=$!\n\
 \n\
-# Pull the model\n\
-./ollama pull gemma2:2b\n\
+echo "⏳ Waiting for Ollama to start..."\n\
+sleep 15\n\
 \n\
-# Start Streamlit\n\
+echo "📦 Pulling model gemma3n:e2b..."\n\
+if ./ollama pull gemma3n:e2b; then\n\
+    echo "✅ Model pulled successfully"\n\
+else\n\
+    echo "❌ Failed to pull model, but continuing..."\n\
+fi\n\
+\n\
+echo "🚀 Starting Streamlit..."\n\
 uv run streamlit run streamlit/streamlit_app.py --server.port=8501 --server.address=0.0.0.0' > /app/start.sh && \
     chmod +x /app/start.sh
 
