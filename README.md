@@ -2,7 +2,7 @@
 title: One Minute Agent
 emoji: 🚨
 colorFrom: red
-colorTo: orange
+colorTo: yellow
 sdk: docker
 app_port: 8501
 pinned: false
