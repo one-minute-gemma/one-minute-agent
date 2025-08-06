@@ -34,10 +34,11 @@ COPY --chown=app:app . .
 # Install dependencies using uv
 RUN uv sync --frozen
 
-# Download and setup Ollama with better error handling
-RUN wget -O /app/ollama https://ollama.com/download/ollama-linux-amd64 && \
-    chmod +x /app/ollama && \
-    file /app/ollama
+# Download Ollama using the install script method (more reliable)
+RUN curl -fsSL https://ollama.com/install.sh | sh && \
+    mv /usr/local/bin/ollama /app/ollama || \
+    (curl -L https://github.com/ollama/ollama/releases/download/v0.11.3/ollama-linux-amd64 -o /app/ollama && chmod +x /app/ollama) || \
+    echo "Ollama download failed, will use mock responses"
 
 # Expose the streamlit port
 EXPOSE 8501
@@ -45,22 +46,26 @@ EXPOSE 8501
 # Health check for streamlit
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 
-# Create startup script with better error handling
+# Create startup script with fallback to mock responses
 RUN echo '#!/bin/bash\n\
 set -e\n\
 \n\
-echo "🔧 Starting Ollama service..."\n\
-./ollama serve &\n\
-OLLAMA_PID=$!\n\
-\n\
-echo "⏳ Waiting for Ollama to start..."\n\
-sleep 15\n\
-\n\
-echo "📦 Pulling model gemma3n:e2b..."\n\
-if ./ollama pull gemma3n:e2b; then\n\
-    echo "✅ Model pulled successfully"\n\
+if [ -f "/app/ollama" ] && [ -x "/app/ollama" ]; then\n\
+    echo "🔧 Starting Ollama service..."\n\
+    ./ollama serve &\n\
+    OLLAMA_PID=$!\n\
+    \n\
+    echo "⏳ Waiting for Ollama to start..."\n\
+    sleep 15\n\
+    \n\
+    echo "📦 Pulling model gemma3n:e2b..."\n\
+    if ./ollama pull gemma3n:e2b; then\n\
+        echo "✅ Model pulled successfully"\n\
+    else\n\
+        echo "❌ Failed to pull model, will use mock responses"\n\
+    fi\n\
 else\n\
-    echo "❌ Failed to pull model, but continuing..."\n\
+    echo "⚠️ Ollama not available, will use mock responses"\n\
 fi\n\
 \n\
 echo "🚀 Starting Streamlit..."\n\
