@@ -12,7 +12,6 @@ RUN apt-get update && apt-get install -y \
     curl \
     software-properties-common \
     git \
-    wget \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
@@ -34,43 +33,11 @@ COPY --chown=app:app . .
 # Install dependencies using uv
 RUN uv sync --frozen
 
-# Download Ollama using the install script method (more reliable)
-RUN curl -fsSL https://ollama.com/install.sh | sh && \
-    mv /usr/local/bin/ollama /app/ollama || \
-    (curl -L https://github.com/ollama/ollama/releases/download/v0.11.3/ollama-linux-amd64 -o /app/ollama && chmod +x /app/ollama) || \
-    echo "Ollama download failed, will use mock responses"
-
 # Expose the streamlit port
 EXPOSE 8501
 
 # Health check for streamlit
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 
-# Create startup script with fallback to mock responses
-RUN echo '#!/bin/bash\n\
-set -e\n\
-\n\
-if [ -f "/app/ollama" ] && [ -x "/app/ollama" ]; then\n\
-    echo "🔧 Starting Ollama service..."\n\
-    ./ollama serve &\n\
-    OLLAMA_PID=$!\n\
-    \n\
-    echo "⏳ Waiting for Ollama to start..."\n\
-    sleep 15\n\
-    \n\
-    echo "📦 Pulling model gemma3n:e2b..."\n\
-    if ./ollama pull gemma3n:e2b; then\n\
-        echo "✅ Model pulled successfully"\n\
-    else\n\
-        echo "❌ Failed to pull model, will use mock responses"\n\
-    fi\n\
-else\n\
-    echo "⚠️ Ollama not available, will use mock responses"\n\
-fi\n\
-\n\
-echo "🚀 Starting Streamlit..."\n\
-uv run streamlit run streamlit/streamlit_app.py --server.port=8501 --server.address=0.0.0.0' > /app/start.sh && \
-    chmod +x /app/start.sh
-
-# Use the startup script
-ENTRYPOINT ["/app/start.sh"]
+# Use uv to run the streamlit app
+ENTRYPOINT ["uv", "run", "streamlit", "run", "streamlit/streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]

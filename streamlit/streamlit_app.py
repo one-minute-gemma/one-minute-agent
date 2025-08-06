@@ -10,6 +10,11 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional
 import sys
 from pathlib import Path
+import os
+import threading
+import subprocess
+import sys
+from pathlib import Path
 
 # Add the project path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -21,237 +26,56 @@ from one_minute_agent.communication import (
     MessageType, Priority, AgentRole
 )
 
-# Page configuration
-st.set_page_config(
-    page_title="Emergency Response Dashboard",
-    page_icon="🚨",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
+# Ollama initialization flag
+OLLAMA_INITIALIZED = False
+OLLAMA_AVAILABLE = False
 
-# Enhanced CSS with fixed height containers and better styling
-st.markdown("""
-<style>
-    /* Dark theme styling */
-    .stApp {
-        background-color: #0f1419;
-        color: #f3f4f6;
-    }
+def initialize_ollama_if_needed():
+    """Initialize Ollama on first run"""
+    global OLLAMA_INITIALIZED, OLLAMA_AVAILABLE
     
-    /* Hide streamlit branding */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
+    if OLLAMA_INITIALIZED:
+        return OLLAMA_AVAILABLE
     
-    /* Custom chat bubble styling */
-    .chat-message {
-        padding: 12px 16px;
-        margin: 8px 0;
-        border-radius: 12px;
-        max-width: 80%;
-        word-wrap: break-word;
-        animation: fadeIn 0.3s ease-in;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .chat-operator {
-        background-color: #dc2626;
-        color: white;
-        margin-left: auto;
-        margin-right: 0;
-    }
-    
-    .chat-assistant {
-        background-color: #2563eb;
-        color: white;
-        margin-left: 0;
-        margin-right: auto;
-    }
-    
-    .chat-user {
-        background-color: #374151;
-        color: #f3f4f6;
-        margin-left: auto;
-        margin-right: 0;
-    }
-    
-    /* FIXED: Chat container with fixed height and scroll */
-    .chat-container {
-        background-color: #111827;
-        border-radius: 0 0 8px 8px;
-        padding: 16px;
-        height: 450px;
-        max-height: 450px;
-        overflow-y: auto;
-        overflow-x: hidden;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    /* Auto-scroll to bottom */
-    .chat-container::-webkit-scrollbar {
-        width: 6px;
-    }
-    
-    .chat-container::-webkit-scrollbar-track {
-        background: #1f2937;
-        border-radius: 3px;
-    }
-    
-    .chat-container::-webkit-scrollbar-thumb {
-        background: #4b5563;
-        border-radius: 3px;
-    }
-    
-    .chat-container::-webkit-scrollbar-thumb:hover {
-        background: #6b7280;
-    }
-    
-    /* Inter-agent log styling - FIXED height */
-    .log-container {
-        background-color: #111827;
-        border-radius: 0 0 8px 8px;
-        padding: 12px;
-        height: 450px;
-        max-height: 450px;
-        overflow-y: auto;
-        font-family: 'Courier New', monospace;
-        font-size: 11px;
-        line-height: 1.3;
-    }
-    
-    .log-entry {
-        padding: 6px 8px;
-        margin: 2px 0;
-        border-radius: 4px;
-        background-color: #1f2937;
-        border-left: 3px solid transparent;
-    }
-    
-    .log-system { 
-        color: #a855f7; 
-        border-left-color: #a855f7;
-    }
-    .log-dispatch { 
-        color: #3b82f6; 
-        border-left-color: #3b82f6;
-    }
-    .log-communication { 
-        color: #10b981; 
-        border-left-color: #10b981;
-    }
-    .log-status { 
-        color: #f59e0b; 
-        border-left-color: #f59e0b;
-    }
-    .log-critical { 
-        color: #ef4444; 
-        font-weight: bold;
-        border-left-color: #ef4444;
-    }
-    
-    /* Status bar styling */
-    .status-bar {
-        background: linear-gradient(90deg, #2563eb, #3b82f6);
-        color: white;
-        padding: 16px;
-        border-radius: 8px;
-        text-align: center;
-        margin-bottom: 20px;
-    }
-    
-    /* Column headers */
-    .column-header {
-        background-color: #1f2937;
-        padding: 12px;
-        border-radius: 8px 8px 0 0;
-        text-align: center;
-        font-weight: bold;
-        margin-bottom: 0;
-    }
-    
-    .column-header.victim {
-        background: linear-gradient(90deg, #2563eb, #3b82f6);
-    }
-    
-    .column-header.operator {
-        background: linear-gradient(90deg, #dc2626, #ef4444);
-    }
-    
-    .column-header.log {
-        background: linear-gradient(90deg, #059669, #10b981);
-    }
-    
-    /* Input styling */
-    .chat-input-container {
-        display: flex;
-        gap: 8px;
-        margin-top: 12px;
-        align-items: center;
-    }
-    
-    /* Communication status indicator */
-    .comm-status {
-        background-color: #065f46;
-        color: #10b981;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 12px;
-        text-align: center;
-        margin-bottom: 16px;
-    }
-    
-    /* Send button styling */
-    .send-button {
-        background-color: #2563eb !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 6px !important;
-        padding: 8px 16px !important;
-        font-size: 16px !important;
-        cursor: pointer !important;
-        min-width: 60px !important;
-    }
-    
-    .send-button:hover {
-        background-color: #1d4ed8 !important;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# Initialize session state
-if 'view_mode' not in st.session_state:
-    st.session_state.view_mode = 'victim'
-if 'operator_messages' not in st.session_state:
-    st.session_state.operator_messages = []
-if 'victim_messages' not in st.session_state:
-    st.session_state.victim_messages = []
-if 'inter_agent_log' not in st.session_state:
-    st.session_state.inter_agent_log = []
-if 'agents_initialized' not in st.session_state:
-    st.session_state.agents_initialized = False
-if 'emergency_status' not in st.session_state:
-    st.session_state.emergency_status = {
-        'active': True,
-        'eta': '4 min',
-        'message': 'Help is on the way',
-        'emergency_id': 'EC2024-001247'
-    }
-if 'communication_system' not in st.session_state:
-    st.session_state.communication_system = None
-if 'last_message_count' not in st.session_state:
-    st.session_state.last_message_count = 0
+    try:
+        from .ollama_setup import initialize_ollama
+        
+        # Check if we're in a container environment (HF Spaces)
+        if os.path.exists("/.dockerenv") or os.environ.get("SPACE_ID"):
+            print("🐳 Detected container environment, initializing Ollama...")
+            OLLAMA_AVAILABLE = initialize_ollama("gemma3n:e2b")
+        else:
+            print("💻 Local environment detected, assuming Ollama is already set up")
+            OLLAMA_AVAILABLE = True
+            
+        OLLAMA_INITIALIZED = True
+        return OLLAMA_AVAILABLE
+        
+    except Exception as e:
+        print(f"❌ Ollama initialization failed: {e}")
+        OLLAMA_INITIALIZED = True
+        OLLAMA_AVAILABLE = False
+        return False
 
 def initialize_agents():
     """Initialize the emergency response agents with communication system"""
     if not st.session_state.agents_initialized:
         try:
-            model_provider = OllamaProvider("gemma3n:e2b")
+            # Initialize Ollama if needed
+            if initialize_ollama_if_needed():
+                try:
+                    model_provider = OllamaProvider("gemma3n:e2b")
+                    st.session_state.provider_type = "Ollama (gemma3n:e2b)"
+                    st.success("🎉 Using Ollama local model")
+                except Exception as e:
+                    print(f"⚠️ Ollama provider failed: {e}")
+                    raise e
+            else:
+                # Fallback to mock provider
+                from nagents.providers.mock_provider import MockProvider
+                model_provider = MockProvider()
+                st.session_state.provider_type = "Mock (Demo Mode)"
+                st.info("🎭 Using demo mode - Ollama initialization failed")
             
             # Initialize communication system
             coordination_system = get_coordination_system()
