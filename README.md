@@ -1,3 +1,13 @@
+---
+title: One Minute Agent
+emoji: 🚨
+colorFrom: red
+colorTo: orange
+sdk: docker
+app_port: 8501
+pinned: false
+---
+
 # One Minute Agent
 
 An intelligent emergency response system built on the `nagents` framework. This project includes both a core agent framework (`nagents`) and a specialized emergency response agent (`one-minute-agent`) designed to assist during emergency situations by communicating with 911 operators.
