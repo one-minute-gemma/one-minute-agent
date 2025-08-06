@@ -2,6 +2,10 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
+# Create a non-root user
+RUN useradd --create-home --shell /bin/bash app \
+    && chown -R app:app /app
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -13,11 +17,18 @@ RUN apt-get update && apt-get install -y \
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
+# Switch to non-root user
+USER app
+
+# Set uv cache directory to a writable location
+ENV UV_CACHE_DIR=/app/.uv-cache
+ENV UV_PROJECT_ENVIRONMENT=/app/.venv
+
 # Copy uv configuration files
-COPY pyproject.toml uv.lock ./
+COPY --chown=app:app pyproject.toml uv.lock ./
 
 # Copy the entire project (needed for imports in streamlit app)
-COPY . .
+COPY --chown=app:app . .
 
 # Install dependencies using uv
 RUN uv sync --frozen
