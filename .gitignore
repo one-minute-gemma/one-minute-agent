@@ -5,3 +5,12 @@ __pycache__
 .DS_Store**/*.jpg
 **/*.jpeg
 **/*.png
+
+# Ignore all image files
+**/*.jpg
+**/*.jpeg
+**/*.png
+**/*.gif
+**/*.bmp
+**/*.tiff
+**/*.webp
