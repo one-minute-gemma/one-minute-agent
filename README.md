@@ -1,3 +1,13 @@
+---
+title: One Minute Agent
+emoji: 🚨
+colorFrom: red
+colorTo: yellow
+sdk: docker
+app_port: 8501
+pinned: false
+---
+ 
  # One Minute Agent ⌚️: the help you need when seconds count
 
 An intelligent emergency response system built on the `nagents` framework. This project includes both a core agent framework (`nagents`) and a what we call "One Minute Platform" (`one-minute-agent`). The platform holds two different agents: one for emergency victim assistance and support and one for 911-operator communication. Each different agent is built to be run locally using ollama.
@@ -157,15 +167,3 @@ python -m nagents
 Each component has its own README with detailed information:
 - See `nagents/README.md` for framework documentation
 - See `one-minute-agent/README.md` for emergency agent specifics
-
-## HF Spaces Config
-
----
-title: One Minute Agent
-emoji: 🚨
-colorFrom: red
-colorTo: yellow
-sdk: docker
-app_port: 8501
-pinned: false
----
