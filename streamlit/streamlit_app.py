@@ -246,28 +246,43 @@ OLLAMA_INITIALIZED = False
 OLLAMA_AVAILABLE = False
 
 def initialize_ollama_if_needed():
-    """Initialize Ollama on first run"""
+    """Initialize Ollama on first run with detailed logging"""
     global OLLAMA_INITIALIZED, OLLAMA_AVAILABLE
     
     if OLLAMA_INITIALIZED:
         return OLLAMA_AVAILABLE
     
     try:
-        from .ollama_setup import initialize_ollama
-        
-        # Check if we're in a container environment (HF Spaces)
+        # Always try to initialize in container environment
         if os.path.exists("/.dockerenv") or os.environ.get("SPACE_ID"):
-            print("🐳 Detected container environment, initializing Ollama...")
-            OLLAMA_AVAILABLE = initialize_ollama("gemma3n:e2b")
+            st.write("🐳 Detected container environment, initializing Ollama...")
+            
+            # Import and run ollama setup
+            import sys
+            sys.path.append(str(Path(__file__).parent))
+            
+            from ollama_setup import initialize_ollama
+            
+            with st.spinner("Downloading and setting up Ollama..."):
+                OLLAMA_AVAILABLE = initialize_ollama("gemma3n:e2b")
+            
+            if OLLAMA_AVAILABLE:
+                st.success("✅ Ollama setup completed successfully")
+            else:
+                st.error("❌ Ollama setup failed")
         else:
-            print("💻 Local environment detected, assuming Ollama is already set up")
+            st.write("💻 Local environment detected, assuming Ollama is already set up")
             OLLAMA_AVAILABLE = True
             
         OLLAMA_INITIALIZED = True
         return OLLAMA_AVAILABLE
         
     except Exception as e:
-        print(f"❌ Ollama initialization failed: {e}")
+        st.error(f"❌ Ollama initialization failed: {str(e)}")
+        st.error(f"Error type: {type(e).__name__}")
+        import traceback
+        st.code(traceback.format_exc())
+        
         OLLAMA_INITIALIZED = True
         OLLAMA_AVAILABLE = False
         return False
@@ -276,23 +291,35 @@ def initialize_agents():
     """Initialize the emergency response agents with communication system"""
     if not st.session_state.agents_initialized:
         try:
-            # Initialize Ollama if needed
+            # Initialize Ollama - no fallback, we want to see what fails
+            st.info("🔧 Initializing Ollama...")
+            
             if initialize_ollama_if_needed():
-                try:
-                    model_provider = OllamaProvider("gemma3n:e2b")
-                    st.session_state.provider_type = "Ollama (gemma3n:e2b)"
-                    st.success("🎉 Using Ollama local model")
-                except Exception as e:
-                    print(f"⚠️ Ollama provider failed: {e}")
-                    raise e
+                st.success("✅ Ollama initialization completed")
             else:
-                # Fallback to mock provider
-                from nagents.providers.mock_provider import MockProvider
-                model_provider = MockProvider()
-                st.session_state.provider_type = "Mock (Demo Mode)"
-                st.info("🎭 Using demo mode - Ollama initialization failed")
+                st.error("❌ Ollama initialization failed")
+                return
+            
+            # Try to create Ollama provider
+            st.info("🤖 Creating Ollama provider...")
+            model_provider = OllamaProvider("gemma3n:e2b")
+            st.session_state.provider_type = "Ollama (gemma3n:e2b)"
+            
+            # Test the provider with a simple chat
+            st.info("🧪 Testing Ollama connection...")
+            try:
+                from nagents.base.agent import Message
+                test_messages = [Message(role="user", content="Hello")]
+                test_response = model_provider.chat(test_messages, "You are a helpful assistant. Respond with a simple greeting.")
+                st.success(f"✅ Ollama test successful: {test_response[:50]}...")
+            except Exception as e:
+                st.error(f"❌ Ollama connection test failed: {str(e)}")
+                raise e
+            
+            st.success("🎉 Using Ollama local model successfully")
             
             # Initialize communication system
+            st.info("📡 Initializing communication system...")
             coordination_system = get_coordination_system()
             message_bus = get_message_bus()
             event_logger = get_event_logger()
@@ -307,6 +334,7 @@ def initialize_agents():
             }
             
             # Create agents with communication enabled
+            st.info("🤖 Creating emergency response agents...")
             st.session_state.operator_agent = create_agent(
                 agent_type="operator",
                 model_provider=model_provider,
@@ -324,6 +352,7 @@ def initialize_agents():
             )
             
             st.session_state.agents_initialized = True
+            st.success("🎉 All agents initialized successfully!")
             
             # Add initial messages
             if not st.session_state.victim_messages:
@@ -340,12 +369,29 @@ def initialize_agents():
                     'timestamp': datetime.now().strftime("%H:%M %p")
                 })
             
-            # FIXED: Initialize with cleaner system log entries
+            # Initialize with cleaner system log entries
             add_system_log("SYSTEM", f'Emergency call initiated - ID: {st.session_state.emergency_status["emergency_id"]}')
                 
         except Exception as e:
-            st.error(f"Failed to initialize agents: {str(e)}")
+            st.error(f"💥 Failed to initialize agents: {str(e)}")
+            st.error(f"Error type: {type(e).__name__}")
+            st.error(f"Full error details: {repr(e)}")
             st.session_state.agents_initialized = False
+            
+            # Show debugging info
+            st.markdown("### 🔍 Debug Information")
+            st.write(f"- Environment variables: SPACE_ID = {os.environ.get('SPACE_ID', 'Not set')}")
+            st.write(f"- Docker environment: {os.path.exists('/.dockerenv')}")
+            st.write(f"- Ollama initialized: {OLLAMA_INITIALIZED}")
+            st.write(f"- Ollama available: {OLLAMA_AVAILABLE}")
+            
+            # Check if ollama binary exists
+            from pathlib import Path
+            ollama_path = Path.home() / "ollama"
+            st.write(f"- Ollama binary exists: {ollama_path.exists()}")
+            if ollama_path.exists():
+                st.write(f"- Ollama binary size: {ollama_path.stat().st_size} bytes")
+                st.write(f"- Ollama binary executable: {os.access(ollama_path, os.X_OK)}")
 
 def add_system_log(message_type: str, content: str, source: str = "SYSTEM"):
     """Add entry to inter-agent communication log"""
