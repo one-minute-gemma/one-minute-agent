@@ -26,6 +26,221 @@ from one_minute_agent.communication import (
     MessageType, Priority, AgentRole
 )
 
+# Page configuration
+st.set_page_config(
+    page_title="Emergency Response Dashboard",
+    page_icon="🚨",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# Enhanced CSS with fixed height containers and better styling
+st.markdown("""
+<style>
+    /* Dark theme styling */
+    .stApp {
+        background-color: #0f1419;
+        color: #f3f4f6;
+    }
+    
+    /* Hide streamlit branding */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Custom chat bubble styling */
+    .chat-message {
+        padding: 12px 16px;
+        margin: 8px 0;
+        border-radius: 12px;
+        max-width: 85%;
+        word-wrap: break-word;
+    }
+    
+    .chat-user {
+        background: linear-gradient(135deg, #1e40af, #3b82f6);
+        color: white;
+        margin-left: auto;
+        text-align: right;
+    }
+    
+    .chat-assistant {
+        background: linear-gradient(135deg, #374151, #4b5563);
+        color: #f3f4f6;
+        margin-right: auto;
+    }
+    
+    .chat-operator {
+        background: linear-gradient(135deg, #dc2626, #ef4444);
+        color: white;
+        margin-right: auto;
+    }
+    
+    /* Column headers */
+    .column-header {
+        background: linear-gradient(135deg, #1f2937, #374151);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 12px;
+        border: 2px solid #4b5563;
+    }
+    
+    .column-header.victim {
+        border-color: #059669;
+        background: linear-gradient(135deg, #064e3b, #065f46);
+    }
+    
+    .column-header.operator {
+        border-color: #dc2626;
+        background: linear-gradient(135deg, #7f1d1d, #991b1b);
+    }
+    
+    .column-header.log {
+        border-color: #7c3aed;
+        background: linear-gradient(135deg, #581c87, #6b21a8);
+    }
+    
+    /* Fixed height chat containers */
+    .chat-container {
+        height: 400px;
+        overflow-y: auto;
+        padding: 16px;
+        background: #1f2937;
+        border-radius: 8px;
+        border: 1px solid #374151;
+        margin-bottom: 12px;
+    }
+    
+    /* Fixed height log container */
+    .log-container {
+        height: 400px;
+        overflow-y: auto;
+        padding: 12px;
+        background: #1f2937;
+        border-radius: 8px;
+        border: 1px solid #374151;
+    }
+    
+    /* Log entries */
+    .log-entry {
+        padding: 8px 12px;
+        margin: 4px 0;
+        border-radius: 6px;
+        font-size: 12px;
+        border-left: 3px solid #6b7280;
+    }
+    
+    .log-communication {
+        background: #064e3b;
+        border-left-color: #059669;
+    }
+    
+    .log-dispatch {
+        background: #7f1d1d;
+        border-left-color: #dc2626;
+    }
+    
+    .log-status {
+        background: #581c87;
+        border-left-color: #7c3aed;
+    }
+    
+    .log-system {
+        background: #374151;
+        border-left-color: #6b7280;
+    }
+    
+    /* Status bar */
+    .status-bar {
+        background: linear-gradient(135deg, #059669, #10b981);
+        color: white;
+        padding: 16px 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Communication status */
+    .comm-status {
+        background: #064e3b;
+        color: #10b981;
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-align: center;
+        margin-bottom: 16px;
+        font-size: 14px;
+        border: 1px solid #059669;
+    }
+    
+    /* Chat input styling */
+    .chat-input-container {
+        margin-top: 12px;
+    }
+    
+    /* Scrollbar styling */
+    .chat-container::-webkit-scrollbar, .log-container::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .chat-container::-webkit-scrollbar-track, .log-container::-webkit-scrollbar-track {
+        background: #374151;
+        border-radius: 3px;
+    }
+    
+    .chat-container::-webkit-scrollbar-thumb, .log-container::-webkit-scrollbar-thumb {
+        background: #6b7280;
+        border-radius: 3px;
+    }
+    
+    .chat-container::-webkit-scrollbar-thumb:hover, .log-container::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Initialize session state
+def initialize_session_state():
+    """Initialize all session state variables"""
+    if 'agents_initialized' not in st.session_state:
+        st.session_state.agents_initialized = False
+    
+    if 'view_mode' not in st.session_state:
+        st.session_state.view_mode = "victim"
+    
+    if 'victim_messages' not in st.session_state:
+        st.session_state.victim_messages = []
+    
+    if 'operator_messages' not in st.session_state:
+        st.session_state.operator_messages = []
+    
+    if 'inter_agent_log' not in st.session_state:
+        st.session_state.inter_agent_log = []
+    
+    if 'last_message_count' not in st.session_state:
+        st.session_state.last_message_count = 0
+    
+    if 'communication_system' not in st.session_state:
+        st.session_state.communication_system = None
+    
+    if 'emergency_status' not in st.session_state:
+        st.session_state.emergency_status = {
+            'message': 'Emergency Response Active',
+            'eta': '3-4 minutes',
+            'emergency_id': f'EMR-{int(time.time() * 1000) % 100000}'
+        }
+    
+    if 'operator_agent' not in st.session_state:
+        st.session_state.operator_agent = None
+    
+    if 'victim_agent' not in st.session_state:
+        st.session_state.victim_agent = None
+    
+    if 'provider_type' not in st.session_state:
+        st.session_state.provider_type = "Initializing..."
+
 # Ollama initialization flag
 OLLAMA_INITIALIZED = False
 OLLAMA_AVAILABLE = False
@@ -448,6 +663,9 @@ def render_supervisor_view():
 def main():
     """Main dashboard application"""
     
+    # Initialize session state first
+    initialize_session_state()
+    
     # Initialize agents
     initialize_agents()
     
@@ -464,7 +682,7 @@ def main():
         message_count = len(st.session_state.communication_system['message_bus'].get_message_history()) if st.session_state.communication_system else 0
         st.markdown(f"""
         <div class="comm-status">
-            🟢 Inter-Agent Communication System Active | Messages: {message_count}
+            🟢 Inter-Agent Communication System Active | Messages: {message_count} | Provider: {st.session_state.provider_type}
         </div>
         """, unsafe_allow_html=True)
     else:
