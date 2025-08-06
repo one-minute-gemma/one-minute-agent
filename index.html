@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Minute Agent ⌚️</title>
+    <meta name="description" content="An intelligent emergency response system - the help you need when seconds count">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #24292f;
+            background-color: #ffffff;
+        }
+
+        .container {
+            max-width: 1012px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding: 48px 0;
+            background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+            color: white;
+            border-radius: 8px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .header p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+
+        h1, h2, h3, h4 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+
+        h1 {
+            font-size: 2rem;
+            border-bottom: 1px solid #d0d7de;
+            padding-bottom: 0.3em;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            border-bottom: 1px solid #d0d7de;
+            padding-bottom: 0.3em;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+        }
+
+        h4 {
+            font-size: 1rem;
+        }
+
+        p {
+            margin-bottom: 16px;
+        }
+
+        ul, ol {
+            padding-left: 2em;
+            margin-bottom: 16px;
+        }
+
+        li {
+            margin-bottom: 0.25em;
+        }
+
+        code {
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            background-color: rgba(175, 184, 193, 0.2);
+            border-radius: 6px;
+            font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+        }
+
+        pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            background-color: #f6f8fa;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        pre code {
+            padding: 0;
+            margin: 0;
+            background-color: transparent;
+        }
+
+        .architecture-image {
+            text-align: center;
+            margin: 32px 0;
+        }
+
+        .architecture-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .section {
+            margin-bottom: 48px;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .tool-card {
+            background: #f6f8fa;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #0969da;
+        }
+
+        .tool-card strong {
+            color: #0969da;
+        }
+
+        .badges {
+            display: flex;
+            gap: 8px;
+            margin: 24px 0;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: #0969da;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 16px;
+            font-size: 0.875rem;
+            text-decoration: none;
+        }
+
+        .badge:hover {
+            background: #0550ae;
+        }
+
+        a {
+            color: #0969da;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            margin-top: 64px;
+            padding: 32px 0;
+            border-top: 1px solid #d0d7de;
+            text-align: center;
+            color: #656d76;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>One Minute Agent ⌚️</h1>
+            <p>The help you need when seconds count</p>
+        </div>
+
+        <div class="section">
+            <p>An intelligent emergency response system built on the <code>nagents</code> framework. This project includes both a core agent framework (<code>nagents</code>) and a what we call "One Minute Platform" (<code>one-minute-agent</code>). The platform holds two different agents: one for emergency victim assistance and support and one for 911-operator communication. Each different agent is built to be run locally using ollama.</p>
+            
+            <p>Furthermore, there are two directories (<code>streamlit</code>) and (<code>react-app</code>). Both of these applications hold different iterations of the project's frontend.</p>
+        </div>
+
+        <div class="section">
+            <h2>Motivation</h2>
+            <p>The motivation behind this project comes from the fact that we have personally experienced situations where people around us have been in need of immediate assistance, but, at the time, they were unable to get it. From seizures, to heart attacks and even epileptic episodes, we have seen firsthand how difficult it can be to get help in a timely manner: especially for some demographics of people like the elderly, the disabled, people living alone, and even persons that practice extreme sports. Often these people may find themselves alone, with no one around to help. And we think that they deserve better.</p>
+
+            <p>Apart from that, we also consider that this solution can be deployed into very different contexts, which can allow people to receive help wherever they are, whenever they need it. For example, we plan to continue working on One Minute to allow integrations into smart homes, smart cars, smart watches, mobile phones, etc.</p>
+
+            <p>We also believe that this is a perfect application for offline, privacy-first AI. Medical records are sensitive information, and we believe that it should be kept private. Furthermore, we know that emergencies may happen at any time, anywhere. This is why we decided to build a system that can be used offline, through tooling that enables user location from last-known locations, as well as through technologies like phone calls and SMS (integrations with these are in the works).</p>
+        </div>
+
+        <div class="section">
+            <h2>Project Overview</h2>
+            <p>The One Minute Platform is a system that allows users to get help when seconds count. It is built on the <code>nagents</code> framework, and it includes two different agents: one for emergency victim assistance and support and one for 911-operator dispatching. Each different agent is built to be run locally using ollama.</p>
+
+            <h3>Nagents</h3>
+            <p><code>nagents</code> is a framework that came as a surprise with the creation of this project. When we were looking into what technology we could use, we got the impression that other agentic frameworks are either too complex, or not focused on small models like <code>gemma3n</code>. We also wanted to build a system that was easy to understand and modify, and <code>nagents</code> seemed to be the perfect fit.</p>
+
+            <p>This is why we decided to create a custom framework that would allow us, and hopefully others very soon, to build agent frameworks that are easy to understand and modify when running on small models. Moreover, we also found very difficult to integrate tool calling into models like <code>gemma3n</code>, even with existing solutions. We also considered the alternative of finetuning the models using tools like unsloth, but we were still unable to do so due to computational and data constraints. That's why <code>nagents</code> allows you to give your model agentic capabilities through a ReAct thinking process, as well as by using structured tool calling.</p>
+
+            <p>This library can be found in the <code>nagents/</code> directory, and we plan to separate it into its own repository in the future. Furthermore, there are other implementations of the framework in other languages like typescript which can be found in <a href="https://github.com/ramcav/nagents/tree/main/src">this repository</a>. This library is a work in progress, and we are constantly adding new features and improving the framework: we hope to release it to the open source community in the future.</p>
+
+            <h3>Project Architecture</h3>
+            <p>We wanted to build a system that was coherent for helping both the 911 operators and the emergency victims. We think that in a lot of cases, 911 operators are not able to help the victims as quickly as they would like to, and this may not be their fault or the victims'. These situations are high risk and trigger a lot of stress, thus, reducing that communication burden was logical to us.</p>
+
+            <p>This is why our system has clear separation of concerns: we have the <code>nagents</code> framework which is the backbone of both agents, and then two individual agents that can be instantiated and run locally. These agents have access to tools that allow them to interact with the world (more on this later). Finally, we have a streamlit app acting as the bridge between the agents and the users.</p>
+
+            <p>It is important to highlight that we wanted to build a frontend in react as well as our second iteration, and that is currently in progress.</p>
+
+            <p>Below you can find a diagram of the project architecture:</p>
+
+            <div class="architecture-image">
+                <img src="https://github-production-user-asset-6210df.s3.amazonaws.com/110005362/475234868-e4522fa0-5d6e-4195-994c-eba2e6fc96c5.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20250806%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20250806T212555Z&X-Amz-Expires=300&X-Amz-Signature=445608f8a1061fa59ff44c6d1fcc013bd8df2000bc31150ae6a25067daa60e9f&X-Amz-SignedHeaders=host" alt="Project Architecture" />
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Agents</h2>
+            
+            <h3>Victim assistance agent</h3>
+            <p>This agent is the one that is responsible for helping the emergency victim. It is built to be run locally, and it is the one that is responsible for. This agent's sole responsibility is to help the victim in any way possible (act as a first responder) by providing medical advice as well as emotional support.</p>
+
+            <p>It has access to a set of tools that allow it to interact with the world. These tools are:</p>
+
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <strong>get_emergency_location</strong>: This tool allows the agent to get the emergency location of the victim.
+                </div>
+                <div class="tool-card">
+                    <strong>get_first_aid_advice</strong>: This tool allows the agent to get first aid advice for the victim based on a traditional matching of input to a set of predefined first aid instructions.
+                </div>
+                <div class="tool-card">
+                    <strong>get_rag_medical_advice</strong>: This tool allows the agent to get medical advice for the victim by using a RAG system.
+                </div>
+            </div>
+
+            <p>The victim assistance agent has a prompt that can be found in <code>one-minute-agent/agents/victim_assistant/prompts/prompt.md</code>. This prompt is used to guide the agent's behavior and to provide it with the necessary context to help the victim. We underwent a lot of iterations to get to this prompt, and we are constantly improving it.</p>
+
+            <h3>911 operator agent</h3>
+            <p>This agent is responsible for communciation with 911 operators. It's job is to get information from the victim and relay it to the operator. It also has access to a set of tools that allow it to interact with the world to get more information about the situation even if the victim is unable to provide it. These tools are:</p>
+
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <strong>get_health_metrics</strong>: This tool allows the agent to get the health metrics of the victim.
+                </div>
+                <div class="tool-card">
+                    <strong>get_user_location</strong>: This tool allows the agent to get the location of the victim.
+                </div>
+                <div class="tool-card">
+                    <strong>get_audio_input</strong>: This tool allows the agent to get audio input from the victim.
+                </div>
+                <div class="tool-card">
+                    <strong>get_video_input</strong>: This tool allows the agent to get video input from the victim.
+                </div>
+                <div class="tool-card">
+                    <strong>get_user_details</strong>: This tool allows the agent to get the details of the victim.
+                </div>
+                <div class="tool-card">
+                    <strong>call_emergency_contact</strong>: This tool allows the agent to call the emergency contact of the victim.
+                </div>
+                <div class="tool-card">
+                    <strong>activate_alarm</strong>: This tool allows the agent to activate the alarm.
+                </div>
+                <div class="tool-card">
+                    <strong>log_incident</strong>: This tool allows the agent to log the incident.
+                </div>
+            </div>
+
+            <p><strong>Note:</strong> Some of these tools are implemented as dummies in the current state of the project. We are working on implementing them in the future.</p>
+
+            <p>The 911 operator agent has a prompt that can be found in <code>one-minute-agent/agents/operator/prompts/prompt.md</code>. This prompt is used to guide the agent's behavior and to provide it with the necessary context to help the victim. We underwent a lot of iterations to get to this prompt, and we are constantly improving it.</p>
+
+            <h3>Streamlit App</h3>
+            <p>The streamlit app is the one that is responsible for the communication between the agents and the users. This acts as a Proof Of Concept for the project, as we want to transition this app to be used in other contexts apart from browsers in the future.</p>
+
+            <h3>React App</h3>
+            <p>This is also a work in progress, and we are currently working on it. It would be a better iteration on the already existinf PoC.</p>
+        </div>
+
+        <div class="section">
+            <h2>Challenges and Learnings</h2>
+            <p>This project was a very challenging one, and we learned a lot from it. We had to pivot several times in the implementation side as we started with the idea of building a fully functional react native app. This proved to be very difficult, especially considering the time constraints we had. Despite this, we were able to at least understand how to use technologies like <code>llama.rnn</code> (library that wraps the <code>llama.cpp</code> library for react native) to run models locally. Though, we decided to pivot because we knew that building a library like <code>nagents</code>for react native would take us even more time (this is being worked on, though 👀), and we wanted to focus on the core of the project and release a valuable PoC.</p>
+
+            <p>This is when we pivotted to using Python. We first turned to <code>Google Adk</code>, but we quickly realized that it was not the right tool for the job. For some reason, we did not manage to get reasonable results with it: agent workflows were very buggy, possibly because <code>gemma3n</code> does not natively support tool calling. We read others had similar issues in the library's GitHub issues, and we decided to pivot to <code>nagents</code>.</p>
+
+            <p>Setting up <code>nagents</code> also was a challenge that goes out of the scope of this project, however, we were able to abstract the main parts that are needed to build an agentic system.</p>
+
+            <p>In terms of agent behavior, despite our agents managing themselves well, they still suffer from hallucinations. We have ran informal benchmarks against the regular model without any prompt enginering and we see that a lot of its features shine through, despite us ordering the model to act in a certain way. They especially tend to overexagerate small details like 'I am bleeding' and jump to conclusions instead of asking further questions or using tooling sometimes. This made us look into finetuning, which also proved to be difficult as we did not manage to download the GGUF from Kaggle because of computational constraints.</p>
+
+            <p>Another issue we went through was the fact that the <code>gemma3n</code> version offered through <code>ollama</code> did not support multimodality. This was a big hurdle as we had assumed from the beginning that we would be able to use the model to get audio and video input from the victim. However, we do not consider this a sever technical debt as this can be solved just by plugging the right model once it is made available.</p>
+
+            <p>Despite all of this, we are very proud of the results we have achieved. We have a working system that can be used to help people in need, and we are constantly improving it. We think that our open source contribution with <code>nagents</code> + <code>one-minute-agent</code>+ <code>gemma3n</code> can be a great start for us and otherpeople to build upon, and, more importantly, to start saving peoples lives.</p>
+        </div>
+
+        <div class="section">
+            <h2>Tech debt and Future Work</h2>
+            <p>We have a lot of things we have to improve in the future. Below you can find them listed down based on different categories:</p>
+
+            <h3>Nagents</h3>
+            <ul>
+                <li>Add support for providers like <code>llama.cpp</code>.</li>
+                <li>Abstract the functionality even more so the user can spin up an agent with a single function call.</li>
+            </ul>
+
+            <h3>Agents</h3>
+            <ul>
+                <li>Improve communication between agents through logging system (read → write → repeat cycle through file).</li>
+                <li>Attach proper functionality to tools, as some of them still have dummy implementations.</li>
+                <li>Use abstract functionality over hardcoded implementations</li>
+                <li>Improve prompts so models hallucinate less (they tend to overexagerate and not engage in human-like, short conversations)</li>
+                <li>Finetune the models for function calling and the specific tasks they are supposed to do.</li>
+            </ul>
+
+            <h3>React App</h3>
+            <ul>
+                <li>Move our Streamlit PoC to a React App.</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>On the technical side</h2>
+            
+            <h3>Directory Structure</h3>
+            <ul>
+                <li><strong><code>nagents/</code></strong> - Core agent framework with base classes, tool registry, and provider system</li>
+                <li><strong><code>one-minute-agent/</code></strong> - Agent implementations</li>
+                <li><strong><code>streamlit/</code></strong> - Streamlit PoC</li>
+                <li><strong><code>react-app/</code></strong> - React App PoC</li>
+                <li><strong><code>misc/</code></strong> - Legacy experimental code and samples</li>
+                <li><strong><code>medical_kb/</code></strong> - Knowledge base for the medical tooling</li>
+            </ul>
+
+            <h3>Prerequisites</h3>
+            <ul>
+                <li>Python 3.13+</li>
+                <li><a href="https://ollama.ai/">Ollama</a> installed and running locally</li>
+            </ul>
+
+            <h3>Quick Start</h3>
+            
+            <h4>1. Setup Environment</h4>
+            <pre><code># Create and activate virtual environment
+uv venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+uv sync</code></pre>
+
+            <h4>2. Install Ollama Model</h4>
+            <pre><code>ollama pull gemma3n:e2b</code></pre>
+
+            <h4>3. Run the Emergency Agent</h4>
+            <pre><code># Run the emergency response agent
+python -m one-minute-agent
+
+# OR run the framework example
+python -m nagents</code></pre>
+
+            <h3>Development</h3>
+            <p>Each component has its own README with detailed information:</p>
+            <ul>
+                <li>See <code>nagents/README.md</code> for framework documentation</li>
+                <li>See <code>one-minute-agent/README.md</code> for emergency agent specifics</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>🚨 One Minute Agent - Built with ❤️ for emergency response</p>
+        </div>
+    </div>
+</body>
+</html> 
