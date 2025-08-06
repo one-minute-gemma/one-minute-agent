@@ -14,3 +14,4 @@ __pycache__
 **/*.bmp
 **/*.tiff
 **/*.webp
+misc/system_architecture.png
