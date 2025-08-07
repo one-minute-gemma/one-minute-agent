@@ -16,6 +16,7 @@ import subprocess
 import sys
 from pathlib import Path
 import requests
+import logging
 
 # Add the project path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -34,6 +35,12 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
 )
+
+# Configure logging early
+log_level = os.environ.get("APP_LOG_LEVEL", "INFO").upper()
+logging.basicConfig(level=getattr(logging, log_level, logging.INFO), format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+logger = logging.getLogger("streamlit_app")
+logger.info(f"Logging initialized at level {log_level}")
 
 # Enhanced CSS with fixed height containers and better styling
 st.markdown("""
