@@ -54,6 +54,21 @@ st.markdown("""
     
     /* Import Inter font */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    /* Top banner */
+    .top-banner {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background: linear-gradient(135deg, #7c2d12, #ea580c);
+        color: #fff7ed;
+        border: 1px solid #fed7aa;
+        padding: 10px 14px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+        font-size: 14px;
+    }
     
     /* Hide streamlit branding */
     #MainMenu {visibility: hidden;}
@@ -231,6 +246,16 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
+# Top banner notice
+st.markdown(
+    """
+    <div class="top-banner">
+      Our demo is currently experiencing some inconveniences. To run a cli version, please clone the repo, install dependencies in a venv with UV and run python -m venv one_minute_agent. For more information, please see README.md.
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 # Initialize session state
 def initialize_session_state():
