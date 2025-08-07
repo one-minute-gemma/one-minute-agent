@@ -15,6 +15,7 @@ import threading
 import subprocess
 import sys
 from pathlib import Path
+import requests
 
 # Add the project path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -41,7 +42,11 @@ st.markdown("""
     .stApp {
         background-color: #0f1419;
         color: #f3f4f6;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji;
     }
+    
+    /* Import Inter font */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
     /* Hide streamlit branding */
     #MainMenu {visibility: hidden;}
@@ -55,6 +60,7 @@ st.markdown("""
         border-radius: 12px;
         max-width: 85%;
         word-wrap: break-word;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
     
     .chat-user {
@@ -180,6 +186,24 @@ st.markdown("""
         margin-top: 12px;
     }
     
+    /* Better buttons */
+    .stButton>button {
+        width: 100%;
+        background: linear-gradient(135deg, #2563eb, #3b82f6);
+        color: #fff;
+        border: none;
+        padding: 0.6rem 0.8rem;
+        border-radius: 8px;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .stButton>button[disabled] {
+        background: #374151 !important;
+        color: #9ca3af !important;
+        cursor: not-allowed !important;
+        box-shadow: none !important;
+    }
+    
     /* Scrollbar styling */
     .chat-container::-webkit-scrollbar, .log-container::-webkit-scrollbar {
         width: 6px;
@@ -245,6 +269,25 @@ def initialize_session_state():
 OLLAMA_INITIALIZED = False
 OLLAMA_AVAILABLE = False
 
+# Track model readiness
+MODEL_READY = False
+
+
+def is_model_available(model_name: str = "gemma3n:e2b") -> bool:
+    """Check via Ollama HTTP API if the model is available locally"""
+    try:
+        host = os.environ.get('OLLAMA_HOST', 'http://127.0.0.1:11434')
+        if not host.startswith('http'):
+            host = f"http://{host}"
+        r = requests.get(f"{host.rstrip('/')}/api/tags", timeout=5)
+        if r.ok:
+            data = r.json() or {}
+            models = data.get('models', [])
+            return any((m.get('name') == model_name) for m in models)
+        return False
+    except Exception:
+        return False
+
 def initialize_ollama_if_needed():
     """Initialize Ollama on first run with detailed logging"""
     global OLLAMA_INITIALIZED, OLLAMA_AVAILABLE
@@ -281,6 +324,12 @@ def initialize_ollama_if_needed():
             st.write("💻 Local environment detected, assuming Ollama is already set up")
             OLLAMA_AVAILABLE = True
             
+        # Check model availability non-blocking
+        global MODEL_READY
+        MODEL_READY = is_model_available("gemma3n:e2b")
+        if not MODEL_READY:
+            st.info("⏳ Model gemma3n:e2b not fully available yet. It may still be downloading. You can browse the UI meanwhile.")
+        
         OLLAMA_INITIALIZED = True
         return OLLAMA_AVAILABLE
         
@@ -328,28 +377,30 @@ def initialize_agents():
             
             model_provider = OllamaProvider(model_name)
             st.session_state.provider_type = f"Ollama ({model_name})"
+            st.session_state.model_ready = is_model_available(model_name)
             
             # Test the provider with a simple chat - with retry
             st.info("🧪 Testing Ollama connection...")
             try:
                 from nagents.base.agent import Message
-                test_messages = [Message(role="user", content="Hello, respond with a single word")]
-                
-                # More robust test with retry
-                max_retries = 3
-                for i in range(max_retries):
-                    try:
-                        test_response = model_provider.chat(test_messages, "You are a helpful assistant. Respond with a simple greeting.")
-                        st.success(f"✅ Ollama test successful: {test_response[:50]}...")
-                        break
-                    except Exception as e:
-                        if i < max_retries - 1:
-                            st.warning(f"Retry {i+1}/{max_retries}: Connection issue - waiting 5 seconds...")
-                            time.sleep(5)
-                        else:
-                            st.error(f"❌ Ollama connection test failed after {max_retries} retries: {str(e)}")
-                            # Continue anyway - it might work later
-                            st.warning("Continuing with initialization even though the test failed...")
+                test_messages = [Message(role="user", content="Hello, respond with a single word")] 
+                if not st.session_state.model_ready:
+                    st.warning("Model not ready yet; skipping connection test for now.")
+                else:
+                    # More robust test with retry
+                    max_retries = 3
+                    for i in range(max_retries):
+                        try:
+                            test_response = model_provider.chat(test_messages, "You are a helpful assistant. Respond with a simple greeting.")
+                            st.success(f"✅ Ollama test successful: {test_response[:50]}...")
+                            break
+                        except Exception as e:
+                            if i < max_retries - 1:
+                                st.warning(f"Retry {i+1}/{max_retries}: Connection issue - waiting 5 seconds...")
+                                time.sleep(5)
+                            else:
+                                st.error(f"❌ Ollama connection test failed after {max_retries} retries: {str(e)}")
+                                st.warning("Continuing with initialization even though the test failed...")
             except Exception as e:
                 st.error(f"❌ Ollama connection setup error: {str(e)}")
                 st.warning("Continuing with initialization even though the test failed...")
@@ -603,7 +654,7 @@ def render_victim_view():
     with col1:
         user_input = st.text_input("Type your message...", key="victim_input", label_visibility="collapsed")
     with col2:
-        send_button = st.button("📤 Send", key="victim_send", help="Send message", type="primary")
+        send_button = st.button("📤 Send", key="victim_send", help="Send message", type="primary", disabled=not st.session_state.get('model_ready', False))
     st.markdown('</div>', unsafe_allow_html=True)
     
     if send_button and user_input:
@@ -640,7 +691,7 @@ def render_victim_view():
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        if st.button("🔥 Fire", key="quick_fire", help="Fire emergency"):
+        if st.button("🔥 Fire", key="quick_fire", help="Fire emergency", disabled=not st.session_state.get('model_ready', False)):
             quick_message = "There's a fire emergency! I need immediate help!"
             st.session_state.victim_messages.append({
                 'role': 'user',
@@ -651,7 +702,7 @@ def render_victim_view():
             st.rerun()
     
     with col2:
-        if st.button("🏥 Medical", key="quick_medical", help="Medical emergency"):
+        if st.button("🏥 Medical", key="quick_medical", help="Medical emergency", disabled=not st.session_state.get('model_ready', False)):
             quick_message = "I need medical help! Someone is injured!"
             st.session_state.victim_messages.append({
                 'role': 'user',
@@ -662,7 +713,7 @@ def render_victim_view():
             st.rerun()
     
     with col3:
-        if st.button("🚗 Accident", key="quick_accident", help="Accident emergency"):
+        if st.button("🚗 Accident", key="quick_accident", help="Accident emergency", disabled=not st.session_state.get('model_ready', False)):
             quick_message = "There's been an accident! People are hurt!"
             st.session_state.victim_messages.append({
                 'role': 'user',
@@ -693,7 +744,7 @@ def render_supervisor_view():
         with col_input:
             victim_input = st.text_input("Type your message...", key="victim_input_supervisor", label_visibility="collapsed")
         with col_send:
-            victim_send_btn = st.button("📤", key="victim_send_supervisor", help="Send message", type="primary")
+            victim_send_btn = st.button("📤", key="victim_send_supervisor", help="Send message", type="primary", disabled=not st.session_state.get('model_ready', False))
         
         if victim_send_btn and victim_input:
             st.session_state.victim_messages.append({
@@ -743,7 +794,7 @@ def render_supervisor_view():
         with col_input:
             operator_input = st.text_input("Type your message...", key="operator_input", label_visibility="collapsed")
         with col_send:
-            operator_send_btn = st.button("📤", key="operator_send", help="Send message", type="primary")
+            operator_send_btn = st.button("📤", key="operator_send", help="Send message", type="primary", disabled=not st.session_state.get('model_ready', False))
         
         if operator_send_btn and operator_input:
             st.session_state.operator_messages.append({
@@ -788,6 +839,14 @@ def main():
         if st.button(f"📱 {current_view}", key="view_toggle"):
             st.session_state.view_mode = "supervisor" if st.session_state.view_mode == "victim" else "victim"
             st.rerun()
+
+    # Sidebar status
+    with st.sidebar:
+        st.markdown("### System Status")
+        st.write(f"Provider: {st.session_state.provider_type}")
+        st.write(f"Model ready: {'✅' if st.session_state.get('model_ready', False) else '⏳'}")
+        if st.session_state.communication_system:
+            st.write(f"Messages: {len(st.session_state.communication_system['message_bus'].get_message_history())}")
     
     # Communication status indicator
     if st.session_state.agents_initialized:

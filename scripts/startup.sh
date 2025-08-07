@@ -29,26 +29,37 @@ echo "🚀 Starting Ollama service on $OLLAMA_HOST..."
 nohup ollama serve > /tmp/ollama.log 2>&1 &
 OLLAMA_PID=$!
 
-# Give Ollama time to start
-echo "⏳ Waiting for Ollama to start (30 seconds)..."
-sleep 30
+# Wait for Ollama API (up to 60s)
+echo "⏳ Waiting for Ollama API to become ready..."
+READY=0
+for i in {1..12}; do
+  if curl -s -m 5 http://localhost:11434/api/version >/dev/null; then
+    READY=1
+    break
+  fi
+  echo "... not ready yet ($i/12)"
+  sleep 5
+done
 
-# Check if Ollama is running
-if ps -p $OLLAMA_PID > /dev/null; then
-    echo "✅ Ollama service running with PID: $OLLAMA_PID"
+if [ "$READY" -eq 1 ]; then
+  echo "✅ Ollama API is ready"
 else
-    echo "❌ Ollama service failed to start. Check /tmp/ollama.log for details:"
-    cat /tmp/ollama.log
-    echo "⚠️ Continuing anyway..."
+  echo "⚠️ Ollama API not ready after waiting, continuing anyway..."
 fi
-
-# Check API connectivity
-echo "🧪 Testing Ollama API connectivity..."
-curl -s -m 5 http://localhost:11434/api/version || echo "⚠️ Failed to connect to Ollama API"
 
 # Pull the model (with increased timeout)
 echo "📦 Pulling model gemma3n:e2b (this may take a while)..."
-timeout 600 ollama pull gemma3n:e2b || echo "⚠️ Model pull timed out or failed, continuing anyway..."
+if ! timeout 1200 ollama pull gemma3n:e2b; then
+  echo "⚠️ Model pull timed out or failed, continuing anyway..."
+fi
+
+# Verify model presence
+echo "🔎 Verifying model availability..."
+if ollama list | grep -q "gemma3n:e2b"; then
+  echo "✅ Model gemma3n:e2b is available"
+else
+  echo "⚠️ Model gemma3n:e2b not found locally yet"
+fi
 
 # Start Streamlit
 echo "🌐 Starting Streamlit app..."

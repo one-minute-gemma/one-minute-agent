@@ -7,13 +7,20 @@ import json
 import base64
 from typing import List
 from ..base.agent import ModelProvider, Message
+import os
+import requests
 
 class OllamaProvider(ModelProvider):
     """Ollama implementation of ModelProvider protocol"""
     
-    def __init__(self, model_name: str = None):
+    def __init__(self, model_name: str = None, host: str = None, request_timeout_seconds: int = 60):
         self.model_name = model_name
-
+        env_host = os.environ.get('OLLAMA_HOST', 'http://127.0.0.1:11434')
+        self.host = host or env_host
+        if not self.host.startswith('http'):
+            self.host = f"http://{self.host}"
+        self.request_timeout_seconds = request_timeout_seconds
+    
     def chat(self, messages: List[Message], system_prompt: str) -> str:
         """Chat with Ollama model"""
         ollama_messages = [
@@ -40,16 +47,31 @@ class OllamaProvider(ModelProvider):
                     print(f"🖼️ Added {len(images)} images to user message")
                     break
         
-        response = ollama.chat(
-            model=self.model_name,
-            messages=ollama_messages,
-            format="json"
-        )
-        
-        return response['message']['content']
+        # Prefer HTTP API with explicit timeout to avoid hanging on HF Spaces
+        url = f"{self.host.rstrip('/')}/api/chat"
+        payload = {
+            "model": self.model_name,
+            "messages": ollama_messages,
+            "stream": False,
+            "format": "json",
+            "options": {"num_predict": 256}
+        }
+        try:
+            response = requests.post(url, json=payload, timeout=(5, self.request_timeout_seconds))
+            response.raise_for_status()
+            data = response.json()
+            if isinstance(data, dict):
+                message = data.get('message', {})
+                content = message.get('content') if isinstance(message, dict) else None
+                return content or json.dumps(data)
+            return json.dumps(data)
+        except requests.Timeout:
+            raise RuntimeError("Ollama request timed out. The model may still be downloading. Please try again shortly.")
+        except Exception as e:
+            raise RuntimeError(f"Ollama request failed: {e}")
     
     def _extract_images_from_content(self, content: str) -> List[bytes]:
-        """Extract base64 images from tool result content"""
+        """Extract base64 images from tool result content (return base64 strings)"""
         images = [] 
         try:
             if "Tool result:" in content:
@@ -61,9 +83,11 @@ class OllamaProvider(ModelProvider):
                         
                         if "image" in data and isinstance(data["image"], dict):
                             if "data" in data["image"]:
-                                image_data = base64.b64decode(data["image"]["data"])
-                                images.append(image_data)
-                                print(f"🖼️ Extracted image: {data['image'].get('filename', 'unknown')}")
+                                # Keep as base64 string for HTTP API
+                                image_b64 = data["image"].get("data")
+                                if image_b64:
+                                    images.append(image_b64)
+                                    print(f"🖼️ Extracted image: {data['image'].get('filename', 'unknown')}")
                     except json.JSONDecodeError:
                         pass
         except Exception as e:
