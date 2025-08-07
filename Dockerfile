@@ -20,12 +20,14 @@ RUN apt-get update && apt-get install -y \
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Download and install Ollama (as root)
-# Using specific version v0.11.3 from GitHub
-RUN mkdir -p /opt/ollama && \
-    wget -q -O /opt/ollama/ollama https://github.com/ollama/ollama/releases/download/v0.11.3/ollama-linux-amd64 && \
-    chmod +x /opt/ollama/ollama && \
-    chown -R app:app /opt/ollama
+# Install Ollama using the official install script (as root)
+RUN curl -fsSL https://ollama.ai/install.sh | sh && \
+    # Make sure Ollama is available in path
+    ln -sf /usr/local/bin/ollama /usr/bin/ollama && \
+    # Verify installation
+    ls -la /usr/local/bin/ollama && \
+    # Give access to app user
+    chown app:app /usr/local/bin/ollama
 
 # Switch to non-root user
 USER app
@@ -35,8 +37,9 @@ ENV UV_CACHE_DIR=/app/.uv-cache
 ENV UV_PROJECT_ENVIRONMENT=/app/.venv
 
 # Set environment for Ollama
-ENV PATH="$PATH:/opt/ollama"
 ENV OLLAMA_HOST="0.0.0.0:11434"
+# Set temporary model directory (will persist in the container)
+ENV OLLAMA_MODELS="/app/.ollama/models"
 
 # Copy uv configuration files
 COPY --chown=app:app pyproject.toml uv.lock ./

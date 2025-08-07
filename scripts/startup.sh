@@ -1,9 +1,28 @@
 #!/bin/bash
 set -e
 
+# Print system info
+echo "📊 System information:"
+uname -a
+echo "Memory:"
+free -h
+
+# Create model directory if it doesn't exist
+mkdir -p /app/.ollama/models
+
 # Print Ollama version
 echo "🔍 Checking Ollama version:"
 ollama --version
+
+# Verify Ollama binary
+if [ -f "/usr/local/bin/ollama" ]; then
+    echo "✅ Ollama binary found at /usr/local/bin/ollama"
+    ls -la /usr/local/bin/ollama
+    file /usr/local/bin/ollama
+else
+    echo "❌ Ollama binary not found at /usr/local/bin/ollama"
+    which ollama || echo "ollama not found in PATH"
+fi
 
 # Start Ollama service in the background
 echo "🚀 Starting Ollama service on $OLLAMA_HOST..."
@@ -11,8 +30,8 @@ nohup ollama serve > /tmp/ollama.log 2>&1 &
 OLLAMA_PID=$!
 
 # Give Ollama time to start
-echo "⏳ Waiting for Ollama to start (15 seconds)..."
-sleep 15
+echo "⏳ Waiting for Ollama to start (30 seconds)..."
+sleep 30
 
 # Check if Ollama is running
 if ps -p $OLLAMA_PID > /dev/null; then
@@ -22,6 +41,10 @@ else
     cat /tmp/ollama.log
     echo "⚠️ Continuing anyway..."
 fi
+
+# Check API connectivity
+echo "🧪 Testing Ollama API connectivity..."
+curl -s -m 5 http://localhost:11434/api/version || echo "⚠️ Failed to connect to Ollama API"
 
 # Pull the model (with increased timeout)
 echo "📦 Pulling model gemma3n:e2b (this may take a while)..."
