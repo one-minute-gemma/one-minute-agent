@@ -251,7 +251,7 @@ st.markdown("""
 st.markdown(
     """
     <div class="top-banner">
-      Our demo is currently experiencing some inconveniences. To run a cli version, please clone the repo, install dependencies in a venv with UV and run python -m venv one_minute_agent. For more information, please see README.md.
+      Our demo is currently experiencing some inconveniences. To run a cli version, please clone the repo, install dependencies in a venv with UV and run uv run -m one_minute_agent. For more information, please see README.md.
     </div>
     """,
     unsafe_allow_html=True,
