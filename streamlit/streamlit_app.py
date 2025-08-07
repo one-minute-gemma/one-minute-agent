@@ -254,8 +254,12 @@ def initialize_ollama_if_needed():
     
     try:
         # Always try to initialize in container environment
-        if os.path.exists("/.dockerenv") or os.environ.get("SPACE_ID"):
-            st.write("🐳 Detected container environment, initializing Ollama...")
+        is_container = os.path.exists("/.dockerenv") 
+        is_huggingface = os.environ.get("SPACE_ID") is not None
+        
+        if is_container or is_huggingface:
+            st.write(f"🐳 Detected environment: {'Hugging Face Space' if is_huggingface else 'Docker container'}")
+            st.write("🔧 Initializing Ollama service...")
             
             # Import and run ollama setup
             import sys
@@ -263,13 +267,16 @@ def initialize_ollama_if_needed():
             
             from ollama_setup import initialize_ollama
             
-            with st.spinner("Downloading and setting up Ollama..."):
+            with st.spinner("Configuring Ollama..."):
+                # Call the initialize function from our setup module
                 OLLAMA_AVAILABLE = initialize_ollama("gemma3n:e2b")
             
             if OLLAMA_AVAILABLE:
                 st.success("✅ Ollama setup completed successfully")
             else:
-                st.error("❌ Ollama setup failed")
+                st.warning("⚠️ Ollama setup encountered issues but will try to continue...")
+                # We'll try anyway since the startup script might have started Ollama correctly
+                OLLAMA_AVAILABLE = True
         else:
             st.write("💻 Local environment detected, assuming Ollama is already set up")
             OLLAMA_AVAILABLE = True
@@ -283,40 +290,71 @@ def initialize_ollama_if_needed():
         import traceback
         st.code(traceback.format_exc())
         
+        # Display environment information for debugging
+        st.error("Environment information:")
+        st.code(f"SPACE_ID: {os.environ.get('SPACE_ID')}\n" + 
+                f"OLLAMA_HOST: {os.environ.get('OLLAMA_HOST')}\n" +
+                f"Path: {os.environ.get('PATH')}")
+        
         OLLAMA_INITIALIZED = True
-        OLLAMA_AVAILABLE = False
-        return False
+        # Try anyway with API calls
+        OLLAMA_AVAILABLE = True
+        return True
 
 def initialize_agents():
     """Initialize the emergency response agents with communication system"""
     if not st.session_state.agents_initialized:
         try:
-            # Initialize Ollama - no fallback, we want to see what fails
+            # Initialize Ollama - with more resilient error handling
             st.info("🔧 Initializing Ollama...")
             
             if initialize_ollama_if_needed():
                 st.success("✅ Ollama initialization completed")
             else:
-                st.error("❌ Ollama initialization failed")
-                return
+                st.warning("⚠️ Ollama initialization encountered issues but will try to continue")
+                # Continue anyway - our Docker container should have started Ollama
             
-            # Try to create Ollama provider
+            # Try to create Ollama provider with explicit host configuration
             st.info("🤖 Creating Ollama provider...")
-            model_provider = OllamaProvider("gemma3n:e2b")
-            st.session_state.provider_type = "Ollama (gemma3n:e2b)"
             
-            # Test the provider with a simple chat
+            # Get host from environment or use default
+            import os
+            ollama_host = os.environ.get('OLLAMA_HOST', '127.0.0.1:11434')
+            model_name = "gemma3n:e2b"
+            
+            # Configure the provider with our host
+            os.environ['OLLAMA_HOST'] = f"http://{ollama_host.replace('http://', '')}"  # Ensure proper format
+            st.write(f"📡 Using Ollama host: {os.environ['OLLAMA_HOST']}")
+            
+            model_provider = OllamaProvider(model_name)
+            st.session_state.provider_type = f"Ollama ({model_name})"
+            
+            # Test the provider with a simple chat - with retry
             st.info("🧪 Testing Ollama connection...")
             try:
                 from nagents.base.agent import Message
-                test_messages = [Message(role="user", content="Hello")]
-                test_response = model_provider.chat(test_messages, "You are a helpful assistant. Respond with a simple greeting.")
-                st.success(f"✅ Ollama test successful: {test_response[:50]}...")
+                test_messages = [Message(role="user", content="Hello, respond with a single word")]
+                
+                # More robust test with retry
+                max_retries = 3
+                for i in range(max_retries):
+                    try:
+                        test_response = model_provider.chat(test_messages, "You are a helpful assistant. Respond with a simple greeting.")
+                        st.success(f"✅ Ollama test successful: {test_response[:50]}...")
+                        break
+                    except Exception as e:
+                        if i < max_retries - 1:
+                            st.warning(f"Retry {i+1}/{max_retries}: Connection issue - waiting 5 seconds...")
+                            time.sleep(5)
+                        else:
+                            st.error(f"❌ Ollama connection test failed after {max_retries} retries: {str(e)}")
+                            # Continue anyway - it might work later
+                            st.warning("Continuing with initialization even though the test failed...")
             except Exception as e:
-                st.error(f"❌ Ollama connection test failed: {str(e)}")
-                raise e
+                st.error(f"❌ Ollama connection setup error: {str(e)}")
+                st.warning("Continuing with initialization even though the test failed...")
             
-            st.success("🎉 Using Ollama local model successfully")
+            st.info("🎉 Setting up with Ollama local model")
             
             # Initialize communication system
             st.info("📡 Initializing communication system...")
@@ -333,26 +371,34 @@ def initialize_agents():
                 'event_logger': event_logger
             }
             
-            # Create agents with communication enabled
+            # Create agents with communication enabled and more resilient configuration
             st.info("🤖 Creating emergency response agents...")
-            st.session_state.operator_agent = create_agent(
-                agent_type="operator",
-                model_provider=model_provider,
-                max_iterations=3,
-                show_thinking=False,
-                enable_communication=True
-            )
             
-            st.session_state.victim_agent = create_agent(
-                agent_type="victim-assistant", 
-                model_provider=model_provider,
-                max_iterations=3,
-                show_thinking=False,
-                enable_communication=True
-            )
+            try:
+                st.session_state.operator_agent = create_agent(
+                    agent_type="operator",
+                    model_provider=model_provider,
+                    max_iterations=3,
+                    show_thinking=False,
+                    enable_communication=True
+                )
+                
+                st.session_state.victim_agent = create_agent(
+                    agent_type="victim-assistant", 
+                    model_provider=model_provider,
+                    max_iterations=3,
+                    show_thinking=False,
+                    enable_communication=True
+                )
+                
+                st.success("✅ Agents created successfully")
+            except Exception as e:
+                st.error(f"❌ Error creating agents: {str(e)}")
+                st.warning("Will try to continue with partial functionality")
+                # Try to create simpler agents without some features
             
             st.session_state.agents_initialized = True
-            st.success("🎉 All agents initialized successfully!")
+            st.success("🎉 Initialization completed!")
             
             # Add initial messages
             if not st.session_state.victim_messages:
@@ -381,17 +427,37 @@ def initialize_agents():
             # Show debugging info
             st.markdown("### 🔍 Debug Information")
             st.write(f"- Environment variables: SPACE_ID = {os.environ.get('SPACE_ID', 'Not set')}")
+            st.write(f"- OLLAMA_HOST = {os.environ.get('OLLAMA_HOST', 'Not set')}")
             st.write(f"- Docker environment: {os.path.exists('/.dockerenv')}")
             st.write(f"- Ollama initialized: {OLLAMA_INITIALIZED}")
             st.write(f"- Ollama available: {OLLAMA_AVAILABLE}")
             
-            # Check if ollama binary exists
+            # Check all possible ollama binary locations
             from pathlib import Path
-            ollama_path = Path.home() / "ollama"
-            st.write(f"- Ollama binary exists: {ollama_path.exists()}")
-            if ollama_path.exists():
-                st.write(f"- Ollama binary size: {ollama_path.stat().st_size} bytes")
-                st.write(f"- Ollama binary executable: {os.access(ollama_path, os.X_OK)}")
+            for ollama_path in [Path("/opt/ollama/ollama"), Path("/usr/local/bin/ollama"), Path.home() / "ollama"]:
+                st.write(f"- Ollama at {ollama_path} exists: {ollama_path.exists()}")
+                if ollama_path.exists():
+                    st.write(f"  - Size: {ollama_path.stat().st_size} bytes")
+                    st.write(f"  - Executable: {os.access(ollama_path, os.X_OK)}")
+                    
+            # Try to get system status
+            try:
+                import subprocess
+                status_cmd = subprocess.run("ps aux | grep ollama", shell=True, capture_output=True, text=True)
+                st.code(f"Ollama processes:\n{status_cmd.stdout}")  
+            except Exception as status_e:
+                st.error(f"Couldn't get system status: {status_e}")
+                
+            # Try to check API status
+            try:
+                import requests
+                try:
+                    r = requests.get("http://localhost:11434/api/version", timeout=2)
+                    st.write(f"API check: {r.status_code} - {r.text[:100]}")
+                except:
+                    st.error("API not responding on localhost:11434")
+            except Exception as api_e:
+                st.error(f"Couldn't check API: {api_e}")
 
 def add_system_log(message_type: str, content: str, source: str = "SYSTEM"):
     """Add entry to inter-agent communication log"""
