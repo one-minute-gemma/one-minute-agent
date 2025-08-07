@@ -15,3 +15,5 @@ __pycache__
 **/*.tiff
 **/*.webp
 misc/system_architecture.png
+
+.DS_Store

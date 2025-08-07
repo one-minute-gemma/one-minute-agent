@@ -369,10 +369,13 @@ def initialize_agents():
             # Get host from environment or use default
             import os
             ollama_host = os.environ.get('OLLAMA_HOST', '127.0.0.1:11434')
+            if not ollama_host.startswith('http'):
+                ollama_host = f"http://{ollama_host}"
+            ollama_host = ollama_host.replace('0.0.0.0', '127.0.0.1')
             model_name = "gemma3n:e2b"
             
             # Configure the provider with our host
-            os.environ['OLLAMA_HOST'] = f"http://{ollama_host.replace('http://', '')}"  # Ensure proper format
+            os.environ['OLLAMA_HOST'] = ollama_host
             st.write(f"📡 Using Ollama host: {os.environ['OLLAMA_HOST']}")
             
             model_provider = OllamaProvider(model_name)
