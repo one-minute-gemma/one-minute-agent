@@ -17,7 +17,7 @@ from .agents import create_agent, create_operator_agent, create_victim_assistant
 def create_emergency_agent(
         agent_type: AgentType = "operator",
         model_name: str = "gemma3n:e2b", 
-        show_thinking: bool = False, 
+        show_thinking: bool = True, 
         max_iterations: int = 2,
         always_use_reasoning: bool = True
         ):

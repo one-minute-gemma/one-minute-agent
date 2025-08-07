@@ -26,7 +26,7 @@ def create_agent(
     agent_type: AgentType,
     model_provider,
     max_iterations: int = 3,
-    show_thinking: bool = False,
+    show_thinking: bool = True,
     always_use_reasoning: bool = True,
     enable_communication: bool = True
 ):
