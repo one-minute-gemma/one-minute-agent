@@ -61,6 +61,17 @@ else
   echo "⚠️ Model gemma3n:e2b not found locally yet"
 fi
 
+# Warm up the model to reduce first-request latency (keep alive for 10 minutes)
+echo "🔥 Warming up model (short generate)..."
+WARMUP_PAYLOAD='{"model":"gemma3n:e2b","prompt":"warmup","stream":false,"options":{"num_predict":8,"temperature":0},"keep_alive":"10m"}'
+if timeout 300 curl -s -X POST http://localhost:11434/api/generate \
+  -H "Content-Type: application/json" \
+  -d "$WARMUP_PAYLOAD" >/tmp/ollama_warmup.json; then
+  echo "✅ Warmup completed"
+else
+  echo "⚠️ Warmup timed out or failed, continuing anyway..."
+fi
+
 # Start Streamlit
 echo "🌐 Starting Streamlit app..."
 exec uv run streamlit run streamlit/streamlit_app.py --server.port=8501 --server.address=0.0.0.0
