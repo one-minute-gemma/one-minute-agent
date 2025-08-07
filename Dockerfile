@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     ca-certificates \
     procps \
+    file \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
