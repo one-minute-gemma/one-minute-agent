@@ -81,7 +81,7 @@ async def startup_event():
             agent_type="victim-assistant",
             model_provider=model_provider,
             max_iterations=3,
-            show_thinking=False,
+            show_thinking=True,
             enable_communication=True
         )
         
@@ -89,7 +89,7 @@ async def startup_event():
             agent_type="operator", 
             model_provider=model_provider,
             max_iterations=3,
-            show_thinking=False,
+            show_thinking=True,
             enable_communication=True
         )
         

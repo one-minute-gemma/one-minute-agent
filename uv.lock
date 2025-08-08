@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.13"
 
 [[package]]
@@ -1372,6 +1372,7 @@ dependencies = [
     { name = "charset-normalizer" },
     { name = "click" },
     { name = "cloudpickle" },
+    { name = "colorama" },
     { name = "configupdater" },
     { name = "cryptography" },
     { name = "docstring-parser" },
@@ -1476,6 +1477,7 @@ requires-dist = [
     { name = "charset-normalizer", specifier = "==3.4.2" },
     { name = "click", specifier = "==8.2.1" },
     { name = "cloudpickle", specifier = "==3.1.1" },
+    { name = "colorama", specifier = ">=0.4.6" },
     { name = "configupdater", specifier = "==3.2" },
     { name = "cryptography", specifier = "==45.0.5" },
     { name = "docstring-parser", specifier = "==0.17.0" },

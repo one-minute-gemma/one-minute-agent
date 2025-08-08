@@ -7,6 +7,65 @@ Uses the new agent factory system with proper tool organization.
 import sys
 import logging
 from pathlib import Path
+from colorama import Fore, Back, Style, init
+
+# Initialize colorama for cross-platform colored output
+init(autoreset=True)
+
+class ColoredFormatter(logging.Formatter):
+    """Custom formatter with colors and visual separators"""
+    
+    # Color mapping for different log levels
+    COLORS = {
+        'DEBUG': Fore.CYAN,
+        'INFO': Fore.GREEN,
+        'WARNING': Fore.YELLOW,
+        'ERROR': Fore.RED,
+        'CRITICAL': Fore.MAGENTA + Style.BRIGHT
+    }
+    
+    # Special colors for different components
+    COMPONENT_COLORS = {
+        'OneMinuteAgent': Fore.BLUE + Style.BRIGHT,
+        'OllamaProvider': Fore.MAGENTA,
+        'ToolRegistry': Fore.CYAN,
+        'EmergencyAgent': Fore.BLUE + Style.BRIGHT
+    }
+    
+    def format(self, record):
+        # Add visual delimiter at start
+        log_color = self.COLORS.get(record.levelname, Fore.WHITE)
+        component_color = self.COMPONENT_COLORS.get(record.name, Fore.WHITE)
+        
+        # Special handling for OneMinuteAgent - show as REASONING instead of INFO
+        level_display = record.levelname
+        if record.name == 'OneMinuteAgent' and record.levelname == 'INFO':
+            level_display = 'REASONING'
+            log_color = Fore.YELLOW + Style.BRIGHT  # Make reasoning more prominent
+        
+        # Format with colors and borders
+        formatted = (
+            f"{Fore.BLACK + Back.WHITE}[LOG]{Style.RESET_ALL} "
+            f"{Fore.CYAN}{self.formatTime(record, '%H:%M:%S')}{Style.RESET_ALL} "
+            f"│ {component_color}{record.name}{Style.RESET_ALL} "
+            f"│ {log_color}{level_display}{Style.RESET_ALL} "
+            f"│ {record.getMessage()}"
+        )
+        
+        return formatted
+
+# Configure logging with custom colored formatter
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+# Remove default handlers
+for handler in logger.handlers[:]:
+    logger.removeHandler(handler)
+
+# Add console handler with colored formatter
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(ColoredFormatter())
+logger.addHandler(console_handler)
 
 sys.path.append(str(Path(__file__).parent))
 
@@ -94,15 +153,24 @@ def main():
         user_input = input(prompt_prefix)
         if user_input.lower() in ['quit', 'exit', 'bye']:
             break
-            
+        
+        # Visual separator before processing
+        print(f"{Fore.YELLOW}{'─' * 60}{Style.RESET_ALL}")
+        print(f"{Fore.YELLOW}🔄 Processing your request...{Style.RESET_ALL}")
+        
         result = agent.chat(user_input)
-        print(f"{agent_name}: {result.content}")
+        
+        # Visual separator after processing
+        print(f"{Fore.YELLOW}{'─' * 60}{Style.RESET_ALL}")
+        print(f"{Fore.GREEN + Style.BRIGHT}{agent_name}:{Style.RESET_ALL} {result.content}")
         
         if result.tools_executed:
-            print(f"🔧 Tools used: {len(result.tools_executed)}")
+            print(f"{Fore.CYAN}🔧 Tools used: {len(result.tools_executed)}{Style.RESET_ALL}")
         if result.metadata:
-            print(f"📊 Metadata: {result.metadata}")
-        print()
+            print(f"{Fore.BLUE}📊 Metadata: {result.metadata}{Style.RESET_ALL}")
+        
+        print(f"{Fore.YELLOW}{'═' * 60}{Style.RESET_ALL}")
+        print()  # Extra space for readability
 
 if __name__ == "__main__":
     main() 

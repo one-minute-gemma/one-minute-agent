@@ -28,7 +28,7 @@ def create_agent(
     max_iterations: int = 3,
     show_thinking: bool = True,
     always_use_reasoning: bool = True,
-    enable_communication: bool = True
+    enable_communication: bool = False
 ):
     """
     Create an emergency response agent with appropriate tools.
